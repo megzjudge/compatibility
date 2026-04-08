@@ -17,62 +17,47 @@
       </p>
     </section>
 
-    <section class="controls-card">
-      <div class="controls-header">
-        <h2 class="controls-title">Add your chart details</h2>
-        <p class="controls-subtitle">
-          We’ll wire this up in <code>script.js</code> next so visitors can enter their birth details and highlight their placements in the table.
-        </p>
-      </div>
+<section class="controls-card">
+  <div class="controls-header">
+    <h2 class="controls-title">Add your birth details</h2>
+    <p class="controls-subtitle">
+      Enter your details to highlight your Moon, Sun, and Ascendant placements in the table.
+    </p>
+  </div>
 
-      <form class="chart-form" id="chart-form" autocomplete="off">
-        <div class="field-group">
-          <label for="birth-date">Birth date</label>
-          <input id="birth-date" name="birth-date" type="date" />
-        </div>
+  <form class="chart-form" id="chart-form" autocomplete="off">
+    <div class="field-group">
+      <label for="birth-date">Birth date</label>
+      <input id="birth-date" name="birth-date" type="date" required />
+    </div>
 
-        <div class="field-group">
-          <label for="birth-time">Birth time</label>
-          <input id="birth-time" name="birth-time" type="time" />
-        </div>
+    <div class="field-group">
+      <label for="birth-time">Birth time (W/HR)</label>
+      <input id="birth-time" name="birth-time" type="time" required />
+    </div>
 
-        <div class="field-group">
-          <label for="birth-place">Birth place</label>
-          <input
-            id="birth-place"
-            name="birth-place"
-            type="text"
-            placeholder="e.g. Sydney, Australia"
-          />
-        </div>
+    <div class="field-group field-group-place">
+      <label for="birth-place">Birth place</label>
+      <input
+        id="birth-place"
+        name="birth-place"
+        type="text"
+        placeholder="Start typing a city or place"
+        list="place-suggestions"
+        required
+      />
+      <datalist id="place-suggestions"></datalist>
+      <input type="hidden" id="birth-lat" name="birth-lat" />
+      <input type="hidden" id="birth-lon" name="birth-lon" />
+      <div class="field-help" id="place-status"></div>
+    </div>
 
-        <div class="field-group">
-          <label for="moon-placement">Moon nakshatra</label>
-          <select id="moon-placement" name="moon-placement">
-            <option value="">Select Moon</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="sun-placement">Sun nakshatra</label>
-          <select id="sun-placement" name="sun-placement">
-            <option value="">Select Sun</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="asc-placement">Ascendant nakshatra</label>
-          <select id="asc-placement" name="asc-placement">
-            <option value="">Select Ascendant</option>
-          </select>
-        </div>
-
-        <div class="button-row">
-          <button type="submit" class="btn btn-primary">Highlight placements</button>
-          <button type="button" class="btn btn-secondary" id="clear-highlights">Clear</button>
-        </div>
-      </form>
-    </section>
+    <div class="button-row">
+      <button type="submit" class="btn btn-primary">Highlight placements</button>
+      <button type="button" class="btn btn-secondary" id="clear-highlights">Clear</button>
+    </div>
+  </form>
+</section>
 
     <section class="table-card">
       <div class="table-wrap">
