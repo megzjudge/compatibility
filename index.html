@@ -1,361 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compatibility</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compatibility</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --bg-soft: #171b2e;
+      --card: rgba(255, 255, 255, 0.06);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text: #f4f6fb;
+      --muted: #b8bfd3;
+      --accent: #8ea6ff;
+      --accent-2: #c8b6ff;
+      --header: rgba(142, 166, 255, 0.16);
+      --row: rgba(255, 255, 255, 0.03);
+      --row-alt: rgba(255, 255, 255, 0.06);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top left, rgba(200, 182, 255, 0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(142, 166, 255, 0.18), transparent 28%),
+        linear-gradient(180deg, #0c1020 0%, #12172a 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 32px 18px;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .page-subtitle {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(142, 166, 255, 0.22), rgba(142, 166, 255, 0.12));
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: left;
+      padding: 18px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      vertical-align: top;
+      font-size: 0.96rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: var(--row);
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--row-alt);
+    }
+
+    tbody tr:hover {
+      background: rgba(200, 182, 255, 0.12);
+      transition: background 0.18s ease;
+    }
+
+    th.rank,
+    td.rank {
+      width: 72px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    th.score,
+    td.score {
+      width: 90px;
+      text-align: center;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
+    .section-label {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(142, 166, 255, 0.14);
+      border: 1px solid rgba(142, 166, 255, 0.22);
+      color: #dce4ff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 20px 12px;
+      }
+
+      .page-subtitle {
+        font-size: 0.95rem;
+      }
+
+      thead th,
+      tbody td {
+        padding: 12px 12px;
+      }
+    }
+
+    /* prettier scrollbar */
+    .table-wrap::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: rgba(142, 166, 255, 0.45);
+      border-radius: 999px;
+    }
+  </style>
 </head>
 <body>
-<main>
+  <main>
+    <div class="section-label">Compatibility Table</div>
+    <h1 class="page-title">Nakshatra Compatibility</h1>
+    <p class="page-subtitle">
+      A cleaner, more readable version of your original compatibility ranking table.
+    </p>
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-0lax{text-align:left;vertical-align:top}
-.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
-</style>
-<table class="tg"><thead>
-  <tr>
-    <th class="tg-0lax"></th>
-    <th class="tg-0lax">Moon in Uttara Phalguni</th>
-    <th class="tg-0lax">/36</th>
-    <th class="tg-0lax">Sun in Purva Ashadha</th>
-    <th class="tg-0lax">/36</th>
-    <th class="tg-0lax">Ascendant in Bharani</th>
-    <th class="tg-0lax">/36</th>
-  </tr></thead>
-    
-<tbody>
-  <tr>
-    <td class="tg-0lax">1</td>
-    <td class="tg-0lax">Mrigashirsha (3/4)</td>
-    <td class="tg-0lax">31</td>
-    <td class="tg-0lax">Uttara Ashadha (1/2/3)</td>
-    <td class="tg-0lax">34</td>
-    <td class="tg-0lax">Ashwini</td>
-    <td class="tg-0lax">33</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky">2</td>
-    <td class="tg-0pky">Uttara Ashadha (1/2/3)</td>
-    <td class="tg-0pky">29</td>
-    <td class="tg-0pky">Revati</td>
-    <td class="tg-0pky">30</td>
-    <td class="tg-0pky">Punarvasu (4)</td>
-    <td class="tg-0pky">30</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">3</td>
-    <td class="tg-0lax">Purva Ashadha</td>
-    <td class="tg-0lax">29</td>
-    <td class="tg-0lax">Purva Bhadrapadha (1/2/3)</td>
-    <td class="tg-0lax">28</td>
-    <td class="tg-0lax">Swati</td>
-    <td class="tg-0lax">28</td>
-  </tr>   
-  <tr>
-    <td class="tg-0pky">4</td>
-    <td class="tg-0pky">Uttara Bhadrapadha</td>
-    <td class="tg-0pky">28</td>
-    <td class="tg-0pky">Uttara Phalguni (4)</td>
-    <td class="tg-0pky">28</td>
-    <td class="tg-0pky">Bharani</td>
-    <td class="tg-0pky">28</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky">5</td>
-    <td class="tg-0pky">Uttara Phalguni (4)</td>
-    <td class="tg-0pky">28</td>
-    <td class="tg-0pky">Purva Ashadha</td>
-    <td class="tg-0pky">28</td>
-    <td class="tg-0pky">Uttara Ashadha (4)</td>
-    <td class="tg-0pky">27</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky">6</td>
-    <td class="tg-0pky">Anuradha</td>
-    <td class="tg-0pky">28</td>
-    <td class="tg-0pky">Mula</td>
-    <td class="tg-0pky">27</td>
-    <td class="tg-0pky">Rohini</td>
-    <td class="tg-0pky">26</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky">7</td>
-    <td class="tg-0pky">Hasta</td>
-    <td class="tg-0pky">27</td>
-    <td class="tg-0pky">Hasta</td>
-    <td class="tg-0pky">27</td>
-    <td class="tg-0pky">Uttara Ashadha (1/2/3)</td>
-    <td class="tg-0pky">25</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky">8</td>
-    <td class="tg-0pky">Revati</td>
-    <td class="tg-0pky">26</td>
-    <td class="tg-0pky">Swati</td>
-    <td class="tg-0pky">27</td>
-    <td class="tg-0pky">Revati</td>
-    <td class="tg-0pky">25</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">9</td>
-    <td class="tg-0lax">Rohini</td>
-    <td class="tg-0lax">25</td>
-    <td class="tg-0lax">Punarvasu (1/2/3)</td>
-    <td class="tg-0lax">27</td>
-    <td class="tg-0lax">Punarvasu (1/2/3)</td>
-    <td class="tg-0lax">25</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">10</td>
-    <td class="tg-0lax">Swati</td>
-    <td class="tg-0lax">25</td>
-    <td class="tg-0lax">Ardra</td>
-    <td class="tg-0lax">26</td>
-    <td class="tg-0lax">Ardra</td>
-    <td class="tg-0lax">25</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">11</td>
-    <td class="tg-0lax">Uttara Ashadha (4)</td>
-    <td class="tg-0lax">24</td>
-    <td class="tg-0lax">Ashwini</td>
-    <td class="tg-0lax">25</td>
-    <td class="tg-0lax">Uttara Phalguni (1/2/3)</td>
-    <td class="tg-0lax">24</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">12</td>
-    <td class="tg-0lax">Mrigashirsha (1/2)</td>
-    <td class="tg-0lax">24</td>
-    <td class="tg-0lax">Uttara Phalguni (1/2/3)</td>
-    <td class="tg-0lax">25</td>
-    <td class="tg-0lax">Ashlesha</td>
-    <td class="tg-0lax">24</td>
-  </tr>   
-  <tr>
-    <td class="tg-0lax">13</td>
-    <td class="tg-0lax">Chitra (1/2)</td>
-    <td class="tg-0lax">24</td>
-    <td class="tg-0lax">Ardra (4)</td>
-    <td class="tg-0lax">22</td>
-    <td class="tg-0lax">Purva Bhadrapadha (1/2/3)</td>
-    <td class="tg-0lax">23</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Shravana</td>
-    <td class="tg-0lax">24</td>
-    <td class="tg-0lax">Uttara Ashadha (4)</td>
-    <td class="tg-0lax">22</td>
-    <td class="tg-0lax">Krittika (1)</td>
-    <td class="tg-0lax">23</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">15</td>
-    <td class="tg-0lax">Punarvasu (1/2/3)</td>
-    <td class="tg-0lax">23</td>
-    <td class="tg-0lax">Shravana</td>
-    <td class="tg-0lax">22</td>
-    <td class="tg-0lax">Purva Bhadrapadha (4)</td>
-    <td class="tg-0lax">22</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Purva Phalguni</td>
-    <td class="tg-0lax">23</td>
-    <td class="tg-0lax">Uttara Bhadrapadha</td>
-    <td class="tg-0lax">22</td>
-    <td class="tg-0lax">Pushya</td>
-    <td class="tg-0lax">22</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Bharani</td>
-    <td class="tg-0lax">21</td>
-    <td class="tg-0lax">Shatabisha</td>
-    <td class="tg-0lax">21</td>
-    <td class="tg-0lax">Vishakha (1/2/3)</td>
-    <td class="tg-0lax">21</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">18</td>
-    <td class="tg-0lax">Ardra</td>
-    <td class="tg-0lax">21</td>
-    <td class="tg-0lax">Vishakha (1/2/3)</td>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Magha</td>
-    <td class="tg-0lax">19</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">19</td>
-    <td class="tg-0lax">Krittika (2/3/4)</td>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Purva Bhadrapadha (4)</td>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Uttara Phalguni (4)</td>
-    <td class="tg-0lax">19</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Pushya</td>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Krittika (1)</td>
-    <td class="tg-0lax">19</td>
-    <td class="tg-0lax">Jyestha</td>
-    <td class="tg-0lax">19</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">21</td>
-    <td class="tg-0lax">Ashlesha</td>
-    <td class="tg-0lax">20</td>
-    <td class="tg-0lax">Mrigashirsha (3/4)</td>
-    <td class="tg-0lax">19</td>
-    <td class="tg-0lax">Shatabisha</td>
-    <td class="tg-0lax">19</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">22</td>
-    <td class="tg-0lax">Vishakha (4)</td>
-    <td class="tg-0lax">18</td>
-    <td class="tg-0lax">Magha</td>
-    <td class="tg-0lax">19</td>
-    <td class="tg-0lax">Mula</td>
-    <td class="tg-0lax">19</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">23</td>
-    <td class="tg-0lax">Uttara Phalguni (1/2/3)</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Rohini</td>
-    <td class="tg-0lax">18</td>
-    <td class="tg-0lax">Shravana</td>
-    <td class="tg-0lax">18</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">24</td>
-    <td class="tg-0lax">Ardra (4)</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Purva Phalguni</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Krittika (2/3/4)</td>
-    <td class="tg-0lax">18</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">25</td>
-    <td class="tg-0lax">Purva Bhadrapadha (4)</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Bharani</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Hasta</td>
-    <td class="tg-0lax">18</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">26</td>
-    <td class="tg-0lax">Krittika (1)</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Jyestha</td>
-    <td class="tg-0lax">17</td>
-    <td class="tg-0lax">Vishakha (4)</td>
-    <td class="tg-0lax">18</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">27</td>
-    <td class="tg-0lax">Vishakha (1/2/3)</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Vishakha (4)</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Purva Ashadha</td>
-    <td class="tg-0lax">17</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">28</td>
-    <td class="tg-0lax">Dhanishta (3/4)</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Ashlesha</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Mrigashirsha (3/4)</td>
-    <td class="tg-0lax">17</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">29</td>
-    <td class="tg-0lax">Chitra (3/4)</td>
-    <td class="tg-0lax">16</td>
-    <td class="tg-0lax">Anuradha</td>
-    <td class="tg-0lax">15</td>
-    <td class="tg-0lax">Anuradha</td>
-    <td class="tg-0lax">17</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">30</td>
-    <td class="tg-0lax">Magha</td>
-    <td class="tg-0lax">15</td>
-    <td class="tg-0lax">Krittika (2/3/4)</td>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Mrigashirsha (1/2)</td>
-    <td class="tg-0lax">14</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">31</td>
-    <td class="tg-0lax">Dhanishta (1/2)</td>
-    <td class="tg-0lax">15</td>
-    <td class="tg-0lax">Dhanishta (3/4)</td>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Purva Phalguni</td>
-    <td class="tg-0lax">14</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">32</td>
-    <td class="tg-0lax">Mula</td>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Pushya</td>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Chitra (3/4)</td>
-    <td class="tg-0lax">13</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">33</td>
-    <td class="tg-0lax">Purva Bhadrapadha (1/2/3)</td>
-    <td class="tg-0lax">14</td>
-    <td class="tg-0lax">Chitra (1/2)</td>
-    <td class="tg-0lax">12</td>
-    <td class="tg-0lax">Dhanishta (1/2)</td>
-    <td class="tg-0lax">10</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">34</td>
-    <td class="tg-0lax">Jyestha</td>
-    <td class="tg-0lax">12</td>
-    <td class="tg-0lax">Chitra (3/4)</td>
-    <td class="tg-0lax">12</td>
-    <td class="tg-0lax">Dhanishta (3/4)</td>
-    <td class="tg-0lax">9</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">35</td>
-    <td class="tg-0lax">Ashwini</td>
-    <td class="tg-0lax">11</td>
-    <td class="tg-0lax">Mrigashirsha (1/2)</td>
-    <td class="tg-0lax">10</td>
-    <td class="tg-0lax">Uttara Bhadrapadha </td>
-    <td class="tg-0lax">4</td>
-  </tr>
-  <tr>
-    <td class="tg-0lax">36</td>
-    <td class="tg-0lax">Shatabisha</td>
-    <td class="tg-0lax">9</td>
-    <td class="tg-0lax">Dhanishta (1/2)</td>
-    <td class="tg-0lax">5</td>
-    <td class="tg-0lax">Chitra (1/2)</td>
-    <td class="tg-0lax">3</td>
-  </tr>
-</tbody></table>
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th>Moon in Uttara Phalguni</th>
+              <th class="score">/36</th>
+              <th>Sun in Purva Ashadha</th>
+              <th class="score">/36</th>
+              <th>Ascendant in Bharani</th>
+              <th class="score">/36</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="rank">1</td><td>Mrigashirsha (3/4)</td><td class="score">31</td><td>Uttara Ashadha (1/2/3)</td><td class="score">34</td><td>Ashwini</td><td class="score">33</td></tr>
+            <tr><td class="rank">2</td><td>Uttara Ashadha (1/2/3)</td><td class="score">29</td><td>Revati</td><td class="score">30</td><td>Punarvasu (4)</td><td class="score">30</td></tr>
+            <tr><td class="rank">3</td><td>Purva Ashadha</td><td class="score">29</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">28</td><td>Swati</td><td class="score">28</td></tr>
+            <tr><td class="rank">4</td><td>Uttara Bhadrapadha</td><td class="score">28</td><td>Uttara Phalguni (4)</td><td class="score">28</td><td>Bharani</td><td class="score">28</td></tr>
+            <tr><td class="rank">5</td><td>Uttara Phalguni (4)</td><td class="score">28</td><td>Purva Ashadha</td><td class="score">28</td><td>Uttara Ashadha (4)</td><td class="score">27</td></tr>
+            <tr><td class="rank">6</td><td>Anuradha</td><td class="score">28</td><td>Mula</td><td class="score">27</td><td>Rohini</td><td class="score">26</td></tr>
+            <tr><td class="rank">7</td><td>Hasta</td><td class="score">27</td><td>Hasta</td><td class="score">27</td><td>Uttara Ashadha (1/2/3)</td><td class="score">25</td></tr>
+            <tr><td class="rank">8</td><td>Revati</td><td class="score">26</td><td>Swati</td><td class="score">27</td><td>Revati</td><td class="score">25</td></tr>
+            <tr><td class="rank">9</td><td>Rohini</td><td class="score">25</td><td>Punarvasu (1/2/3)</td><td class="score">27</td><td>Punarvasu (1/2/3)</td><td class="score">25</td></tr>
+            <tr><td class="rank">10</td><td>Swati</td><td class="score">25</td><td>Ardra</td><td class="score">26</td><td>Ardra</td><td class="score">25</td></tr>
+            <tr><td class="rank">11</td><td>Uttara Ashadha (4)</td><td class="score">24</td><td>Ashwini</td><td class="score">25</td><td>Uttara Phalguni (1/2/3)</td><td class="score">24</td></tr>
+            <tr><td class="rank">12</td><td>Mrigashirsha (1/2)</td><td class="score">24</td><td>Uttara Phalguni (1/2/3)</td><td class="score">25</td><td>Ashlesha</td><td class="score">24</td></tr>
+            <tr><td class="rank">13</td><td>Chitra (1/2)</td><td class="score">24</td><td>Ardra (4)</td><td class="score">22</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">23</td></tr>
+            <tr><td class="rank">14</td><td>Shravana</td><td class="score">24</td><td>Uttara Ashadha (4)</td><td class="score">22</td><td>Krittika (1)</td><td class="score">23</td></tr>
+            <tr><td class="rank">15</td><td>Punarvasu (1/2/3)</td><td class="score">23</td><td>Shravana</td><td class="score">22</td><td>Purva Bhadrapadha (4)</td><td class="score">22</td></tr>
+            <tr><td class="rank">16</td><td>Purva Phalguni</td><td class="score">23</td><td>Uttara Bhadrapadha</td><td class="score">22</td><td>Pushya</td><td class="score">22</td></tr>
+            <tr><td class="rank">17</td><td>Bharani</td><td class="score">21</td><td>Shatabisha</td><td class="score">21</td><td>Vishakha (1/2/3)</td><td class="score">21</td></tr>
+            <tr><td class="rank">18</td><td>Ardra</td><td class="score">21</td><td>Vishakha (1/2/3)</td><td class="score">20</td><td>Magha</td><td class="score">19</td></tr>
+            <tr><td class="rank">19</td><td>Krittika (2/3/4)</td><td class="score">20</td><td>Purva Bhadrapadha (4)</td><td class="score">20</td><td>Uttara Phalguni (4)</td><td class="score">19</td></tr>
+            <tr><td class="rank">20</td><td>Pushya</td><td class="score">20</td><td>Krittika (1)</td><td class="score">19</td><td>Jyestha</td><td class="score">19</td></tr>
+            <tr><td class="rank">21</td><td>Ashlesha</td><td class="score">20</td><td>Mrigashirsha (3/4)</td><td class="score">19</td><td>Shatabisha</td><td class="score">19</td></tr>
+            <tr><td class="rank">22</td><td>Vishakha (4)</td><td class="score">18</td><td>Magha</td><td class="score">19</td><td>Mula</td><td class="score">19</td></tr>
+            <tr><td class="rank">23</td><td>Uttara Phalguni (1/2/3)</td><td class="score">17</td><td>Rohini</td><td class="score">18</td><td>Shravana</td><td class="score">18</td></tr>
+            <tr><td class="rank">24</td><td>Ardra (4)</td><td class="score">17</td><td>Purva Phalguni</td><td class="score">17</td><td>Krittika (2/3/4)</td><td class="score">18</td></tr>
+            <tr><td class="rank">25</td><td>Purva Bhadrapadha (4)</td><td class="score">17</td><td>Bharani</td><td class="score">17</td><td>Hasta</td><td class="score">18</td></tr>
+            <tr><td class="rank">26</td><td>Krittika (1)</td><td class="score">16</td><td>Jyestha</td><td class="score">17</td><td>Vishakha (4)</td><td class="score">18</td></tr>
+            <tr><td class="rank">27</td><td>Vishakha (1/2/3)</td><td class="score">16</td><td>Vishakha (4)</td><td class="score">16</td><td>Purva Ashadha</td><td class="score">17</td></tr>
+            <tr><td class="rank">28</td><td>Dhanishta (3/4)</td><td class="score">16</td><td>Ashlesha</td><td class="score">16</td><td>Mrigashirsha (3/4)</td><td class="score">17</td></tr>
+            <tr><td class="rank">29</td><td>Chitra (3/4)</td><td class="score">16</td><td>Anuradha</td><td class="score">15</td><td>Anuradha</td><td class="score">17</td></tr>
+            <tr><td class="rank">30</td><td>Magha</td><td class="score">15</td><td>Krittika (2/3/4)</td><td class="score">14</td><td>Mrigashirsha (1/2)</td><td class="score">14</td></tr>
+            <tr><td class="rank">31</td><td>Dhanishta (1/2)</td><td class="score">15</td><td>Dhanishta (3/4)</td><td class="score">14</td><td>Purva Phalguni</td><td class="score">14</td></tr>
+            <tr><td class="rank">32</td><td>Mula</td><td class="score">14</td><td>Pushya</td><td class="score">14</td><td>Chitra (3/4)</td><td class="score">13</td></tr>
+            <tr><td class="rank">33</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">14</td><td>Chitra (1/2)</td><td class="score">12</td><td>Dhanishta (1/2)</td><td class="score">10</td></tr>
+            <tr><td class="rank">34</td><td>Jyestha</td><td class="score">12</td><td>Chitra (3/4)</td><td class="score">12</td><td>Dhanishta (3/4)</td><td class="score">9</td></tr>
+            <tr><td class="rank">35</td><td>Ashwini</td><td class="score">11</td><td>Mrigashirsha (1/2)</td><td class="score">10</td><td>Uttara Bhadrapadha</td><td class="score">4</td></tr>
+            <tr><td class="rank">36</td><td>Shatabisha</td><td class="score">9</td><td>Dhanishta (1/2)</td><td class="score">5</td><td>Chitra (1/2)</td><td class="score">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-</main>
+    <p class="footer-note">
+      This restyles your original uploaded table and fixes the malformed HTML around the “Purva Bhadrapadha (1/2/3)” row. :contentReference[oaicite:1]{index=1}
+    </p>
+  </main>
 </body>
 </html>
