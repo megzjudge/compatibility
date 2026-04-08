@@ -17,9 +17,9 @@ const nakshatras = [
   { label: "🐍 Rohini",             ruler: "Moon"    },
   { label: "🐍 Mrigashirsha",       ruler: "Mars"    },
   { label: "🐕 Ardra",              ruler: "Rahu"    },
-  { label: "🐈‍⬛ Punarvasu",        ruler: "Jupiter" },
+  { label: "🐈‍⬛ Punarvasu",          ruler: "Jupiter" },
   { label: "🐐 Pushya",             ruler: "Saturn"  },
-  { label: "🐈‍⬛ Ashlesha",         ruler: "Mercury" },
+  { label: "🐈‍⬛ Ashlesha",           ruler: "Mercury" },
   { label: "🐀 Magha",              ruler: "Ketu"    },
   { label: "🐀 Purva Phalguni",     ruler: "Venus"   },
   { label: "🐄 Uttara Phalguni",    ruler: "Sun"     },
@@ -186,7 +186,7 @@ async function handleFormSubmit(event) {
       birthPlace
     };
 
-    const response = await fetch("/api/astro/nakshatras", {
+    const response = await fetch("/api/astro", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
