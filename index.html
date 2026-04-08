@@ -14,9 +14,6 @@
       --muted: #b8bfd3;
       --accent: #8ea6ff;
       --accent-2: #c8b6ff;
-      --header: rgba(142, 166, 255, 0.16);
-      --row: rgba(255, 255, 255, 0.03);
-      --row-alt: rgba(255, 255, 255, 0.06);
       --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
       --radius: 22px;
     }
@@ -45,6 +42,20 @@
     main {
       max-width: 1400px;
       margin: 0 auto;
+    }
+
+    .section-label {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(142, 166, 255, 0.14);
+      border: 1px solid rgba(142, 166, 255, 0.22);
+      color: #dce4ff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
     }
 
     .page-title {
@@ -78,7 +89,7 @@
 
     table {
       width: 100%;
-      min-width: 980px;
+      min-width: 1100px;
       border-collapse: collapse;
     }
 
@@ -106,11 +117,11 @@
     }
 
     tbody tr:nth-child(odd) {
-      background: var(--row);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     tbody tr:nth-child(even) {
-      background: var(--row-alt);
+      background: rgba(255, 255, 255, 0.06);
     }
 
     tbody tr:hover {
@@ -134,28 +145,30 @@
       color: #ffffff;
     }
 
-    .pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.88rem;
+    .nak {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.38rem;
+    }
+
+    .nak-name {
+      font-weight: 600;
+    }
+
+    .nak-meta {
+      opacity: 0.95;
+      font-size: 0.95em;
+      letter-spacing: 0.01em;
       white-space: nowrap;
     }
 
-    .section-label {
-      display: inline-block;
-      margin-bottom: 14px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(142, 166, 255, 0.14);
-      border: 1px solid rgba(142, 166, 255, 0.22);
-      color: #dce4ff;
-      font-size: 0.88rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
+    .sub {
+      font-size: 0.72em;
+      vertical-align: sub;
+      opacity: 0.82;
+      font-weight: 500;
+      margin-left: 0.1rem;
     }
 
     .footer-note {
@@ -180,7 +193,6 @@
       }
     }
 
-    /* prettier scrollbar */
     .table-wrap::-webkit-scrollbar {
       height: 10px;
     }
@@ -201,7 +213,7 @@
     <div class="section-label">Compatibility Table</div>
     <h1 class="page-title">Nakshatra Compatibility</h1>
     <p class="page-subtitle">
-      A cleaner, more readable version of your original compatibility ranking table.
+      Compatibility rankings with yoni animal and planetary ruler shown inside each placement cell.
     </p>
 
     <div class="table-card">
@@ -219,42 +231,330 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td class="rank">1</td><td>Mrigashirsha (3/4)</td><td class="score">31</td><td>Uttara Ashadha (1/2/3)</td><td class="score">34</td><td>Ashwini</td><td class="score">33</td></tr>
-            <tr><td class="rank">2</td><td>Uttara Ashadha (1/2/3)</td><td class="score">29</td><td>Revati</td><td class="score">30</td><td>Punarvasu (4)</td><td class="score">30</td></tr>
-            <tr><td class="rank">3</td><td>Purva Ashadha</td><td class="score">29</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">28</td><td>Swati</td><td class="score">28</td></tr>
-            <tr><td class="rank">4</td><td>Uttara Bhadrapadha</td><td class="score">28</td><td>Uttara Phalguni (4)</td><td class="score">28</td><td>Bharani</td><td class="score">28</td></tr>
-            <tr><td class="rank">5</td><td>Uttara Phalguni (4)</td><td class="score">28</td><td>Purva Ashadha</td><td class="score">28</td><td>Uttara Ashadha (4)</td><td class="score">27</td></tr>
-            <tr><td class="rank">6</td><td>Anuradha</td><td class="score">28</td><td>Mula</td><td class="score">27</td><td>Rohini</td><td class="score">26</td></tr>
-            <tr><td class="rank">7</td><td>Hasta</td><td class="score">27</td><td>Hasta</td><td class="score">27</td><td>Uttara Ashadha (1/2/3)</td><td class="score">25</td></tr>
-            <tr><td class="rank">8</td><td>Revati</td><td class="score">26</td><td>Swati</td><td class="score">27</td><td>Revati</td><td class="score">25</td></tr>
-            <tr><td class="rank">9</td><td>Rohini</td><td class="score">25</td><td>Punarvasu (1/2/3)</td><td class="score">27</td><td>Punarvasu (1/2/3)</td><td class="score">25</td></tr>
-            <tr><td class="rank">10</td><td>Swati</td><td class="score">25</td><td>Ardra</td><td class="score">26</td><td>Ardra</td><td class="score">25</td></tr>
-            <tr><td class="rank">11</td><td>Uttara Ashadha (4)</td><td class="score">24</td><td>Ashwini</td><td class="score">25</td><td>Uttara Phalguni (1/2/3)</td><td class="score">24</td></tr>
-            <tr><td class="rank">12</td><td>Mrigashirsha (1/2)</td><td class="score">24</td><td>Uttara Phalguni (1/2/3)</td><td class="score">25</td><td>Ashlesha</td><td class="score">24</td></tr>
-            <tr><td class="rank">13</td><td>Chitra (1/2)</td><td class="score">24</td><td>Ardra (4)</td><td class="score">22</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">23</td></tr>
-            <tr><td class="rank">14</td><td>Shravana</td><td class="score">24</td><td>Uttara Ashadha (4)</td><td class="score">22</td><td>Krittika (1)</td><td class="score">23</td></tr>
-            <tr><td class="rank">15</td><td>Punarvasu (1/2/3)</td><td class="score">23</td><td>Shravana</td><td class="score">22</td><td>Purva Bhadrapadha (4)</td><td class="score">22</td></tr>
-            <tr><td class="rank">16</td><td>Purva Phalguni</td><td class="score">23</td><td>Uttara Bhadrapadha</td><td class="score">22</td><td>Pushya</td><td class="score">22</td></tr>
-            <tr><td class="rank">17</td><td>Bharani</td><td class="score">21</td><td>Shatabisha</td><td class="score">21</td><td>Vishakha (1/2/3)</td><td class="score">21</td></tr>
-            <tr><td class="rank">18</td><td>Ardra</td><td class="score">21</td><td>Vishakha (1/2/3)</td><td class="score">20</td><td>Magha</td><td class="score">19</td></tr>
-            <tr><td class="rank">19</td><td>Krittika (2/3/4)</td><td class="score">20</td><td>Purva Bhadrapadha (4)</td><td class="score">20</td><td>Uttara Phalguni (4)</td><td class="score">19</td></tr>
-            <tr><td class="rank">20</td><td>Pushya</td><td class="score">20</td><td>Krittika (1)</td><td class="score">19</td><td>Jyestha</td><td class="score">19</td></tr>
-            <tr><td class="rank">21</td><td>Ashlesha</td><td class="score">20</td><td>Mrigashirsha (3/4)</td><td class="score">19</td><td>Shatabisha</td><td class="score">19</td></tr>
-            <tr><td class="rank">22</td><td>Vishakha (4)</td><td class="score">18</td><td>Magha</td><td class="score">19</td><td>Mula</td><td class="score">19</td></tr>
-            <tr><td class="rank">23</td><td>Uttara Phalguni (1/2/3)</td><td class="score">17</td><td>Rohini</td><td class="score">18</td><td>Shravana</td><td class="score">18</td></tr>
-            <tr><td class="rank">24</td><td>Ardra (4)</td><td class="score">17</td><td>Purva Phalguni</td><td class="score">17</td><td>Krittika (2/3/4)</td><td class="score">18</td></tr>
-            <tr><td class="rank">25</td><td>Purva Bhadrapadha (4)</td><td class="score">17</td><td>Bharani</td><td class="score">17</td><td>Hasta</td><td class="score">18</td></tr>
-            <tr><td class="rank">26</td><td>Krittika (1)</td><td class="score">16</td><td>Jyestha</td><td class="score">17</td><td>Vishakha (4)</td><td class="score">18</td></tr>
-            <tr><td class="rank">27</td><td>Vishakha (1/2/3)</td><td class="score">16</td><td>Vishakha (4)</td><td class="score">16</td><td>Purva Ashadha</td><td class="score">17</td></tr>
-            <tr><td class="rank">28</td><td>Dhanishta (3/4)</td><td class="score">16</td><td>Ashlesha</td><td class="score">16</td><td>Mrigashirsha (3/4)</td><td class="score">17</td></tr>
-            <tr><td class="rank">29</td><td>Chitra (3/4)</td><td class="score">16</td><td>Anuradha</td><td class="score">15</td><td>Anuradha</td><td class="score">17</td></tr>
-            <tr><td class="rank">30</td><td>Magha</td><td class="score">15</td><td>Krittika (2/3/4)</td><td class="score">14</td><td>Mrigashirsha (1/2)</td><td class="score">14</td></tr>
-            <tr><td class="rank">31</td><td>Dhanishta (1/2)</td><td class="score">15</td><td>Dhanishta (3/4)</td><td class="score">14</td><td>Purva Phalguni</td><td class="score">14</td></tr>
-            <tr><td class="rank">32</td><td>Mula</td><td class="score">14</td><td>Pushya</td><td class="score">14</td><td>Chitra (3/4)</td><td class="score">13</td></tr>
-            <tr><td class="rank">33</td><td>Purva Bhadrapadha (1/2/3)</td><td class="score">14</td><td>Chitra (1/2)</td><td class="score">12</td><td>Dhanishta (1/2)</td><td class="score">10</td></tr>
-            <tr><td class="rank">34</td><td>Jyestha</td><td class="score">12</td><td>Chitra (3/4)</td><td class="score">12</td><td>Dhanishta (3/4)</td><td class="score">9</td></tr>
-            <tr><td class="rank">35</td><td>Ashwini</td><td class="score">11</td><td>Mrigashirsha (1/2)</td><td class="score">10</td><td>Uttara Bhadrapadha</td><td class="score">4</td></tr>
-            <tr><td class="rank">36</td><td>Shatabisha</td><td class="score">9</td><td>Dhanishta (1/2)</td><td class="score">5</td><td>Chitra (1/2)</td><td class="score">3</td></tr>
+            <tr>
+              <td class="rank">1</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(3/4)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">31</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐾 ☀</span></span></td>
+              <td class="score">34</td>
+              <td><span class="nak"><span class="nak-name">Ashwini</span><span class="nak-meta">🐎 ☋</span></span></td>
+              <td class="score">33</td>
+            </tr>
+            <tr>
+              <td class="rank">2</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🦦 ☀</span></span></td>
+              <td class="score">29</td>
+              <td><span class="nak"><span class="nak-name">Revati</span><span class="nak-meta">🐘 ☿</span></span></td>
+              <td class="score">30</td>
+              <td><span class="nak"><span class="nak-name">Punarvasu</span><span class="sub">(4)</span><span class="nak-meta">🐈 ♃</span></span></td>
+              <td class="score">30</td>
+            </tr>
+            <tr>
+              <td class="rank">3</td>
+              <td><span class="nak"><span class="nak-name">Purva Ashadha</span><span class="nak-meta">🐒 ♀</span></span></td>
+              <td class="score">29</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Swati</span><span class="nak-meta">🐃 ☊</span></span></td>
+              <td class="score">28</td>
+            </tr>
+            <tr>
+              <td class="rank">4</td>
+              <td><span class="nak"><span class="nak-name">Uttara Bhadrapadha</span><span class="nak-meta">🐄 ♄</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(4)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Bharani</span><span class="nak-meta">🐘 ♀</span></span></td>
+              <td class="score">28</td>
+            </tr>
+            <tr>
+              <td class="rank">5</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(4)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Purva Ashadha</span><span class="nak-meta">🐒 ♀</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(4)</span><span class="nak-meta">🦦 ☀</span></span></td>
+              <td class="score">27</td>
+            </tr>
+            <tr>
+              <td class="rank">6</td>
+              <td><span class="nak"><span class="nak-name">Anuradha</span><span class="nak-meta">🦌 ♄</span></span></td>
+              <td class="score">28</td>
+              <td><span class="nak"><span class="nak-name">Mula</span><span class="nak-meta">🐕 ☋</span></span></td>
+              <td class="score">27</td>
+              <td><span class="nak"><span class="nak-name">Rohini</span><span class="nak-meta">🐍 🌙</span></span></td>
+              <td class="score">26</td>
+            </tr>
+            <tr>
+              <td class="rank">7</td>
+              <td><span class="nak"><span class="nak-name">Hasta</span><span class="nak-meta">🐃 🌙</span></span></td>
+              <td class="score">27</td>
+              <td><span class="nak"><span class="nak-name">Hasta</span><span class="nak-meta">🐃 🌙</span></span></td>
+              <td class="score">27</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🦦 ☀</span></span></td>
+              <td class="score">25</td>
+            </tr>
+            <tr>
+              <td class="rank">8</td>
+              <td><span class="nak"><span class="nak-name">Revati</span><span class="nak-meta">🐘 ☿</span></span></td>
+              <td class="score">26</td>
+              <td><span class="nak"><span class="nak-name">Swati</span><span class="nak-meta">🐃 ☊</span></span></td>
+              <td class="score">27</td>
+              <td><span class="nak"><span class="nak-name">Revati</span><span class="nak-meta">🐘 ☿</span></span></td>
+              <td class="score">25</td>
+            </tr>
+            <tr>
+              <td class="rank">9</td>
+              <td><span class="nak"><span class="nak-name">Rohini</span><span class="nak-meta">🐍 🌙</span></span></td>
+              <td class="score">25</td>
+              <td><span class="nak"><span class="nak-name">Punarvasu</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐈 ♃</span></span></td>
+              <td class="score">27</td>
+              <td><span class="nak"><span class="nak-name">Punarvasu</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐈 ♃</span></span></td>
+              <td class="score">25</td>
+            </tr>
+            <tr>
+              <td class="rank">10</td>
+              <td><span class="nak"><span class="nak-name">Swati</span><span class="nak-meta">🐃 ☊</span></span></td>
+              <td class="score">25</td>
+              <td><span class="nak"><span class="nak-name">Ardra</span><span class="nak-meta">🐕 ☊</span></span></td>
+              <td class="score">26</td>
+              <td><span class="nak"><span class="nak-name">Ardra</span><span class="nak-meta">🐕 ☊</span></span></td>
+              <td class="score">25</td>
+            </tr>
+            <tr>
+              <td class="rank">11</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(4)</span><span class="nak-meta">🦦 ☀</span></span></td>
+              <td class="score">24</td>
+              <td><span class="nak"><span class="nak-name">Ashwini</span><span class="nak-meta">🐎 ☋</span></span></td>
+              <td class="score">25</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">24</td>
+            </tr>
+            <tr>
+              <td class="rank">12</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(1/2)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">24</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">25</td>
+              <td><span class="nak"><span class="nak-name">Ashlesha</span><span class="nak-meta">🐈 ☿</span></span></td>
+              <td class="score">24</td>
+            </tr>
+            <tr>
+              <td class="rank">13</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(1/2)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">24</td>
+              <td><span class="nak"><span class="nak-name">Ardra</span><span class="sub">(4)</span><span class="nak-meta">🐕 ☊</span></span></td>
+              <td class="score">22</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">23</td>
+            </tr>
+            <tr>
+              <td class="rank">14</td>
+              <td><span class="nak"><span class="nak-name">Shravana</span><span class="nak-meta">🐒 🌙</span></span></td>
+              <td class="score">24</td>
+              <td><span class="nak"><span class="nak-name">Uttara Ashadha</span><span class="sub">(4)</span><span class="nak-meta">🦦 ☀</span></span></td>
+              <td class="score">22</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(1)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">23</td>
+            </tr>
+            <tr>
+              <td class="rank">15</td>
+              <td><span class="nak"><span class="nak-name">Punarvasu</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐈 ♃</span></span></td>
+              <td class="score">23</td>
+              <td><span class="nak"><span class="nak-name">Shravana</span><span class="nak-meta">🐒 🌙</span></span></td>
+              <td class="score">22</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(4)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">22</td>
+            </tr>
+            <tr>
+              <td class="rank">16</td>
+              <td><span class="nak"><span class="nak-name">Purva Phalguni</span><span class="nak-meta">🐀 ♀</span></span></td>
+              <td class="score">23</td>
+              <td><span class="nak"><span class="nak-name">Uttara Bhadrapadha</span><span class="nak-meta">🐄 ♄</span></span></td>
+              <td class="score">22</td>
+              <td><span class="nak"><span class="nak-name">Pushya</span><span class="nak-meta">🐐 ♄</span></span></td>
+              <td class="score">22</td>
+            </tr>
+            <tr>
+              <td class="rank">17</td>
+              <td><span class="nak"><span class="nak-name">Bharani</span><span class="nak-meta">🐘 ♀</span></span></td>
+              <td class="score">21</td>
+              <td><span class="nak"><span class="nak-name">Shatabisha</span><span class="nak-meta">🐎 ☊</span></span></td>
+              <td class="score">21</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">21</td>
+            </tr>
+            <tr>
+              <td class="rank">18</td>
+              <td><span class="nak"><span class="nak-name">Ardra</span><span class="nak-meta">🐕 ☊</span></span></td>
+              <td class="score">21</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">20</td>
+              <td><span class="nak"><span class="nak-name">Magha</span><span class="nak-meta">🐀 ☋</span></span></td>
+              <td class="score">19</td>
+            </tr>
+            <tr>
+              <td class="rank">19</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(2/3/4)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">20</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(4)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">20</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(4)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">19</td>
+            </tr>
+            <tr>
+              <td class="rank">20</td>
+              <td><span class="nak"><span class="nak-name">Pushya</span><span class="nak-meta">🐐 ♄</span></span></td>
+              <td class="score">20</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(1)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">19</td>
+              <td><span class="nak"><span class="nak-name">Jyeshtha</span><span class="nak-meta">🦌 ☿</span></span></td>
+              <td class="score">19</td>
+            </tr>
+            <tr>
+              <td class="rank">21</td>
+              <td><span class="nak"><span class="nak-name">Ashlesha</span><span class="nak-meta">🐈 ☿</span></span></td>
+              <td class="score">20</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(3/4)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">19</td>
+              <td><span class="nak"><span class="nak-name">Shatabisha</span><span class="nak-meta">🐎 ☊</span></span></td>
+              <td class="score">19</td>
+            </tr>
+            <tr>
+              <td class="rank">22</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(4)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">18</td>
+              <td><span class="nak"><span class="nak-name">Magha</span><span class="nak-meta">🐀 ☋</span></span></td>
+              <td class="score">19</td>
+              <td><span class="nak"><span class="nak-name">Mula</span><span class="nak-meta">🐕 ☋</span></span></td>
+              <td class="score">19</td>
+            </tr>
+            <tr>
+              <td class="rank">23</td>
+              <td><span class="nak"><span class="nak-name">Uttara Phalguni</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐄 ☀</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Rohini</span><span class="nak-meta">🐍 🌙</span></span></td>
+              <td class="score">18</td>
+              <td><span class="nak"><span class="nak-name">Shravana</span><span class="nak-meta">🐒 🌙</span></span></td>
+              <td class="score">18</td>
+            </tr>
+            <tr>
+              <td class="rank">24</td>
+              <td><span class="nak"><span class="nak-name">Ardra</span><span class="sub">(4)</span><span class="nak-meta">🐕 ☊</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Purva Phalguni</span><span class="nak-meta">🐀 ♀</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(2/3/4)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">18</td>
+            </tr>
+            <tr>
+              <td class="rank">25</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(4)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Bharani</span><span class="nak-meta">🐘 ♀</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Hasta</span><span class="nak-meta">🐃 🌙</span></span></td>
+              <td class="score">18</td>
+            </tr>
+            <tr>
+              <td class="rank">26</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(1)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Jyeshtha</span><span class="nak-meta">🦌 ☿</span></span></td>
+              <td class="score">17</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(4)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">18</td>
+            </tr>
+            <tr>
+              <td class="rank">27</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Vishakha</span><span class="sub">(4)</span><span class="nak-meta">🐅 ♃</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Purva Ashadha</span><span class="nak-meta">🐒 ♀</span></span></td>
+              <td class="score">17</td>
+            </tr>
+            <tr>
+              <td class="rank">28</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(3/4)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Ashlesha</span><span class="nak-meta">🐈 ☿</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(3/4)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">17</td>
+            </tr>
+            <tr>
+              <td class="rank">29</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(3/4)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">16</td>
+              <td><span class="nak"><span class="nak-name">Anuradha</span><span class="nak-meta">🦌 ♄</span></span></td>
+              <td class="score">15</td>
+              <td><span class="nak"><span class="nak-name">Anuradha</span><span class="nak-meta">🦌 ♄</span></span></td>
+              <td class="score">17</td>
+            </tr>
+            <tr>
+              <td class="rank">30</td>
+              <td><span class="nak"><span class="nak-name">Magha</span><span class="nak-meta">🐀 ☋</span></span></td>
+              <td class="score">15</td>
+              <td><span class="nak"><span class="nak-name">Krittika</span><span class="sub">(2/3/4)</span><span class="nak-meta">🐐 ☀</span></span></td>
+              <td class="score">14</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(1/2)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">14</td>
+            </tr>
+            <tr>
+              <td class="rank">31</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(1/2)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">15</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(3/4)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">14</td>
+              <td><span class="nak"><span class="nak-name">Purva Phalguni</span><span class="nak-meta">🐀 ♀</span></span></td>
+              <td class="score">14</td>
+            </tr>
+            <tr>
+              <td class="rank">32</td>
+              <td><span class="nak"><span class="nak-name">Mula</span><span class="nak-meta">🐕 ☋</span></span></td>
+              <td class="score">14</td>
+              <td><span class="nak"><span class="nak-name">Pushya</span><span class="nak-meta">🐐 ♄</span></span></td>
+              <td class="score">14</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(3/4)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">13</td>
+            </tr>
+            <tr>
+              <td class="rank">33</td>
+              <td><span class="nak"><span class="nak-name">Purva Bhadrapadha</span><span class="sub">(1/2/3)</span><span class="nak-meta">🦁 ♃</span></span></td>
+              <td class="score">14</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(1/2)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">12</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(1/2)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">10</td>
+            </tr>
+            <tr>
+              <td class="rank">34</td>
+              <td><span class="nak"><span class="nak-name">Jyeshtha</span><span class="nak-meta">🦌 ☿</span></span></td>
+              <td class="score">12</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(3/4)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">12</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(3/4)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">9</td>
+            </tr>
+            <tr>
+              <td class="rank">35</td>
+              <td><span class="nak"><span class="nak-name">Ashwini</span><span class="nak-meta">🐎 ☋</span></span></td>
+              <td class="score">11</td>
+              <td><span class="nak"><span class="nak-name">Mrigashirsha</span><span class="sub">(1/2)</span><span class="nak-meta">🐍 ♂</span></span></td>
+              <td class="score">10</td>
+              <td><span class="nak"><span class="nak-name">Uttara Bhadrapadha</span><span class="nak-meta">🐄 ♄</span></span></td>
+              <td class="score">4</td>
+            </tr>
+            <tr>
+              <td class="rank">36</td>
+              <td><span class="nak"><span class="nak-name">Shatabisha</span><span class="nak-meta">🐎 ☊</span></span></td>
+              <td class="score">9</td>
+              <td><span class="nak"><span class="nak-name">Dhanishta</span><span class="sub">(1/2)</span><span class="nak-meta">🦁 ♂</span></span></td>
+              <td class="score">5</td>
+              <td><span class="nak"><span class="nak-name">Chitra</span><span class="sub">(1/2)</span><span class="nak-meta">🐅 ♂</span></span></td>
+              <td class="score">3</td>
+            </tr>
           </tbody>
         </table>
       </div>
