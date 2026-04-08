@@ -75,7 +75,8 @@ if (nakshatraMap["Shatabhisha"]) {
 
 const state = {
   birthInput: null,
-  apiResult: null
+  apiResult: null,
+  placeResults: []
 };
 
 const els = {
@@ -83,45 +84,16 @@ const els = {
   birthDate: document.getElementById("birth-date"),
   birthTime: document.getElementById("birth-time"),
   birthPlace: document.getElementById("birth-place"),
-  moonSelect: document.getElementById("moon-placement"),
-  sunSelect: document.getElementById("sun-placement"),
-  ascSelect: document.getElementById("asc-placement"),
+  birthLat: document.getElementById("birth-lat"),
+  birthLon: document.getElementById("birth-lon"),
+  placeSuggestions: document.getElementById("place-suggestions"),
+  placeStatus: document.getElementById("place-status"),
   clearBtn: document.getElementById("clear-highlights")
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  populateDropdowns();
   bindEvents();
 });
-
-function populateDropdowns() {
-  const placementNames = Object.keys(nakshatraMap)
-    .filter((name) => name !== "Jyeshtha" && name !== "Shatabisha")
-    .sort((a, b) => a.localeCompare(b));
-
-  fillSelect(els.moonSelect, placementNames, "Select Moon");
-  fillSelect(els.sunSelect, placementNames, "Select Sun");
-  fillSelect(els.ascSelect, placementNames, "Select Ascendant");
-}
-
-function fillSelect(selectEl, names, placeholder) {
-  if (!selectEl) return;
-
-  selectEl.innerHTML = "";
-
-  const firstOption = document.createElement("option");
-  firstOption.value = "";
-  firstOption.textContent = placeholder;
-  selectEl.appendChild(firstOption);
-
-  names.forEach((name) => {
-    const info = nakshatraMap[name];
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = `${planetSymbolMap[info.ruler]} ${info.animal} ${name}`;
-    selectEl.appendChild(option);
-  });
-}
 
 function bindEvents() {
   if (els.form) {
@@ -132,15 +104,82 @@ function bindEvents() {
     els.clearBtn.addEventListener("click", clearHighlightsAndInputs);
   }
 
-  [els.moonSelect, els.sunSelect, els.ascSelect].forEach((selectEl) => {
-    if (!selectEl) return;
-    selectEl.addEventListener("change", handleManualSelectionChange);
-  });
+  if (els.birthPlace) {
+    els.birthPlace.addEventListener("input", debounce(handlePlaceInput, 300));
+    els.birthPlace.addEventListener("change", handlePlaceSelection);
+    els.birthPlace.addEventListener("blur", handlePlaceSelection);
+  }
 
   window.addEventListener("beforeunload", () => {
     state.birthInput = null;
     state.apiResult = null;
+    state.placeResults = [];
   });
+}
+
+async function handlePlaceInput() {
+  const query = els.birthPlace?.value?.trim() || "";
+
+  els.birthLat.value = "";
+  els.birthLon.value = "";
+
+  if (query.length < 3) {
+    renderPlaceSuggestions([]);
+    setPlaceStatus("");
+    return;
+  }
+
+  try {
+    setPlaceStatus("Searching places...");
+
+    const response = await fetch(`/api/places?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error(`Place lookup failed with ${response.status}`);
+    }
+
+    const results = await response.json();
+    state.placeResults = Array.isArray(results) ? results : [];
+
+    renderPlaceSuggestions(state.placeResults);
+
+    if (state.placeResults.length > 0) {
+      setPlaceStatus("Choose a suggested place to lock coordinates.");
+    } else {
+      setPlaceStatus("No matching places found.");
+    }
+  } catch (error) {
+    console.error("Place search failed:", error);
+    setPlaceStatus("Could not load place suggestions.");
+    renderPlaceSuggestions([]);
+  }
+}
+
+function renderPlaceSuggestions(results) {
+  els.placeSuggestions.innerHTML = "";
+
+  results.forEach((place) => {
+    const option = document.createElement("option");
+    option.value = place.display_name;
+    els.placeSuggestions.appendChild(option);
+  });
+}
+
+function handlePlaceSelection() {
+  const typed = els.birthPlace?.value?.trim() || "";
+  const match = state.placeResults.find((place) => place.display_name === typed);
+
+  if (!match) {
+    els.birthLat.value = "";
+    els.birthLon.value = "";
+    if (typed) {
+      setPlaceStatus("Pick a place from the suggestions.");
+    }
+    return;
+  }
+
+  els.birthLat.value = String(match.lat);
+  els.birthLon.value = String(match.lon);
+  setPlaceStatus("Place selected.");
 }
 
 async function handleFormSubmit(event) {
@@ -149,69 +188,42 @@ async function handleFormSubmit(event) {
   const birthDate = els.birthDate?.value?.trim() || "";
   const birthTime = els.birthTime?.value?.trim() || "";
   const birthPlace = els.birthPlace?.value?.trim() || "";
+  const lat = els.birthLat?.value?.trim() || "";
+  const lon = els.birthLon?.value?.trim() || "";
 
-  const moonManual = els.moonSelect?.value || "";
-  const sunManual = els.sunSelect?.value || "";
-  const ascManual = els.ascSelect?.value || "";
-
-  if (moonManual || sunManual || ascManual) {
-    highlightUserPlacements({
-      moonNakshatra: moonManual,
-      sunNakshatra: sunManual,
-      ascNakshatra: ascManual
-    });
+  if (!birthDate || !birthTime || !birthPlace || !lat || !lon) {
+    alert("Enter date and time, then choose a birth place from the suggestions.");
     return;
   }
 
-  if (!birthDate || !birthTime || !birthPlace) {
-    alert("Enter birth date, birth time, and birth place, or choose placements manually.");
-    return;
-  }
-
-  state.birthInput = {
-    birthDate,
-    birthTime,
-    birthPlace
-  };
+  state.birthInput = { birthDate, birthTime, birthPlace, lat, lon };
 
   try {
     setFormBusy(true);
-
-    const payload = {
-      birthDate,
-      birthTime,
-      birthPlace
-    };
 
     const response = await fetch("/api/astro", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        birthDate,
+        birthTime,
+        birthPlace,
+        lat: Number(lat),
+        lon: Number(lon)
+      })
     });
 
     if (!response.ok) {
-      const text = await safeReadText(response);
+      const text = await response.text().catch(() => "");
       throw new Error(text || `Request failed with status ${response.status}`);
     }
 
     const result = await response.json();
     state.apiResult = result;
 
-    const normalized = normalizeApiResult(result);
-
-    if (normalized.moonNakshatra && els.moonSelect) {
-      els.moonSelect.value = normalized.moonNakshatra;
-    }
-    if (normalized.sunNakshatra && els.sunSelect) {
-      els.sunSelect.value = normalized.sunNakshatra;
-    }
-    if (normalized.ascNakshatra && els.ascSelect) {
-      els.ascSelect.value = normalized.ascNakshatra;
-    }
-
-    highlightUserPlacements(normalized);
+    highlightUserPlacements(normalizeApiResult(result));
   } catch (error) {
     console.error("Astrology lookup failed:", error);
     alert(`Could not fetch chart details: ${error.message}`);
@@ -220,42 +232,55 @@ async function handleFormSubmit(event) {
   }
 }
 
-function handleManualSelectionChange() {
-  const moonNakshatra = els.moonSelect?.value || "";
-  const sunNakshatra = els.sunSelect?.value || "";
-  const ascNakshatra = els.ascSelect?.value || "";
+function normalizeApiResult(result) {
+  return {
+    moonNakshatra: normalizeNakshatraName(
+      result?.moonNakshatra || result?.moon?.nakshatra || ""
+    ),
+    moonPada: String(result?.moonPada || result?.moon?.pada || "").trim(),
 
-  if (!moonNakshatra && !sunNakshatra && !ascNakshatra) {
-    clearHighlights();
-    return;
-  }
+    sunNakshatra: normalizeNakshatraName(
+      result?.sunNakshatra || result?.sun?.nakshatra || ""
+    ),
+    sunPada: String(result?.sunPada || result?.sun?.pada || "").trim(),
 
-  highlightUserPlacements({
-    moonNakshatra,
-    sunNakshatra,
-    ascNakshatra
-  });
+    ascNakshatra: normalizeNakshatraName(
+      result?.ascNakshatra || result?.ascendant?.nakshatra || result?.asc?.nakshatra || ""
+    ),
+    ascPada: String(result?.ascPada || result?.ascendant?.pada || result?.asc?.pada || "").trim()
+  };
 }
 
-function highlightUserPlacements({ moonNakshatra, sunNakshatra, ascNakshatra }) {
+function highlightUserPlacements({
+  moonNakshatra,
+  moonPada,
+  sunNakshatra,
+  sunPada,
+  ascNakshatra,
+  ascPada
+}) {
   clearHighlights();
 
-  const targets = [
-    { column: "moon", value: moonNakshatra },
-    { column: "sun", value: sunNakshatra },
-    { column: "asc", value: ascNakshatra }
-  ];
+  highlightSingle("moon", moonNakshatra, moonPada);
+  highlightSingle("sun", sunNakshatra, sunPada);
+  highlightSingle("asc", ascNakshatra, ascPada);
+}
 
-  targets.forEach(({ column, value }) => {
-    if (!value) return;
+function highlightSingle(column, nakshatra, pada) {
+  if (!nakshatra) return;
 
-    const selector =
-      `.nak[data-column="${cssEscape(column)}"][data-nakshatra="${cssEscape(value)}"]`;
+  const matches = document.querySelectorAll(
+    `.nak[data-column="${cssEscape(column)}"][data-nakshatra="${cssEscape(nakshatra)}"]`
+  );
 
-    document.querySelectorAll(selector).forEach((el) => {
+  matches.forEach((el) => {
+    const sub = el.querySelector(".pill-sub");
+    const subText = sub ? sub.textContent.replace(/[()]/g, "").trim() : "";
+
+    if (!pada || !subText || subText === pada || subText.split("/").includes(pada)) {
       el.classList.add("is-user-match");
       el.setAttribute("aria-current", "true");
-    });
+    }
   });
 }
 
@@ -273,8 +298,14 @@ function clearHighlightsAndInputs() {
     els.form.reset();
   }
 
+  if (els.placeSuggestions) {
+    els.placeSuggestions.innerHTML = "";
+  }
+
   state.birthInput = null;
   state.apiResult = null;
+  state.placeResults = [];
+  setPlaceStatus("");
 }
 
 function setFormBusy(isBusy) {
@@ -282,9 +313,6 @@ function setFormBusy(isBusy) {
     els.birthDate,
     els.birthTime,
     els.birthPlace,
-    els.moonSelect,
-    els.sunSelect,
-    els.ascSelect,
     els.clearBtn,
     els.form?.querySelector('button[type="submit"]')
   ].filter(Boolean);
@@ -299,55 +327,32 @@ function setFormBusy(isBusy) {
   }
 }
 
-function normalizeApiResult(result) {
-  const moonNakshatra =
-    result?.moonNakshatra ||
-    result?.moon?.nakshatra ||
-    result?.placements?.moon?.nakshatra ||
-    "";
-
-  const sunNakshatra =
-    result?.sunNakshatra ||
-    result?.sun?.nakshatra ||
-    result?.placements?.sun?.nakshatra ||
-    "";
-
-  const ascNakshatra =
-    result?.ascNakshatra ||
-    result?.ascendantNakshatra ||
-    result?.asc?.nakshatra ||
-    result?.placements?.asc?.nakshatra ||
-    result?.placements?.ascendant?.nakshatra ||
-    "";
-
-  return {
-    moonNakshatra: normalizeNakshatraName(moonNakshatra),
-    sunNakshatra: normalizeNakshatraName(sunNakshatra),
-    ascNakshatra: normalizeNakshatraName(ascNakshatra)
-  };
+function setPlaceStatus(text) {
+  if (els.placeStatus) {
+    els.placeStatus.textContent = text;
+  }
 }
 
 function normalizeNakshatraName(name) {
-  if (!name) return "";
-
-  const trimmed = String(name).trim();
-
+  const value = String(name || "").trim();
   const aliases = {
     Jyeshtha: "Jyestha",
     Shatabisha: "Shatabhisha"
   };
-
-  return aliases[trimmed] || trimmed;
+  return aliases[value] || value;
 }
 
-function safeReadText(response) {
-  return response.text().catch(() => "");
+function debounce(fn, wait = 250) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), wait);
+  };
 }
 
 function cssEscape(value) {
   if (window.CSS && typeof window.CSS.escape === "function") {
     return window.CSS.escape(value);
   }
-
   return String(value).replace(/["\\]/g, "\\$&");
 }
