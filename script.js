@@ -17,9 +17,9 @@ const nakshatras = [
   { label: "🐍 Rohini",             ruler: "Moon"    },
   { label: "🐍 Mrigashirsha",       ruler: "Mars"    },
   { label: "🐕 Ardra",              ruler: "Rahu"    },
-  { label: "🐈‍⬛ Punarvasu",          ruler: "Jupiter" },
+  { label: "🐈‍⬛ Punarvasu",        ruler: "Jupiter" },
   { label: "🐐 Pushya",             ruler: "Saturn"  },
-  { label: "🐈‍⬛ Ashlesha",           ruler: "Mercury" },
+  { label: "🐈‍⬛ Ashlesha",         ruler: "Mercury" },
   { label: "🐀 Magha",              ruler: "Ketu"    },
   { label: "🐀 Purva Phalguni",     ruler: "Venus"   },
   { label: "🐄 Uttara Phalguni",    ruler: "Sun"     },
@@ -66,7 +66,6 @@ const nakshatraMap = Object.fromEntries(
   })
 );
 
-// Alias spelling support
 if (nakshatraMap["Jyestha"]) {
   nakshatraMap["Jyeshtha"] = nakshatraMap["Jyestha"];
 }
@@ -155,7 +154,6 @@ async function handleFormSubmit(event) {
   const sunManual = els.sunSelect?.value || "";
   const ascManual = els.ascSelect?.value || "";
 
-  // Manual mode: if any dropdowns are chosen, use them directly.
   if (moonManual || sunManual || ascManual) {
     highlightUserPlacements({
       moonNakshatra: moonManual,
@@ -165,7 +163,6 @@ async function handleFormSubmit(event) {
     return;
   }
 
-  // API mode: need all three birth inputs
   if (!birthDate || !birthTime || !birthPlace) {
     alert("Enter birth date, birth time, and birth place, or choose placements manually.");
     return;
@@ -204,7 +201,6 @@ async function handleFormSubmit(event) {
 
     const normalized = normalizeApiResult(result);
 
-    // Mirror result into dropdowns too
     if (normalized.moonNakshatra && els.moonSelect) {
       els.moonSelect.value = normalized.moonNakshatra;
     }
@@ -304,7 +300,6 @@ function setFormBusy(isBusy) {
 }
 
 function normalizeApiResult(result) {
-  // Supports a few possible shapes so you can adapt your backend later.
   const moonNakshatra =
     result?.moonNakshatra ||
     result?.moon?.nakshatra ||
