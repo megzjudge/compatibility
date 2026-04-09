@@ -122,7 +122,6 @@ function bindEvents() {
 async function handlePlaceInput() {
   const query = els.birthPlace?.value?.trim() || "";
 
-  // Clear locked location values only while typing a new query
   els.birthLat.value = "";
   els.birthLon.value = "";
   if (els.birthTimezone) els.birthTimezone.value = "";
@@ -185,6 +184,7 @@ function handlePlaceSelection() {
     els.birthLat.value = "";
     els.birthLon.value = "";
     if (els.birthTimezone) els.birthTimezone.value = "";
+    setPlaceStatus("Selected place did not lock coordinates.");
     return;
   }
 
@@ -192,7 +192,12 @@ function handlePlaceSelection() {
   els.birthLon.value = String(match.lon);
   if (els.birthTimezone) els.birthTimezone.value = match.timezone || "";
   els.birthPlace.value = match.display_name;
-  setPlaceStatus("Place selected.");
+
+  if (!match.timezone) {
+    setPlaceStatus("Place selected, but timezone is missing.");
+  } else {
+    setPlaceStatus(`Place selected. Timezone: ${match.timezone}`);
+  }
 }
 
 async function handleFormSubmit(event) {
@@ -201,12 +206,44 @@ async function handleFormSubmit(event) {
   const birthDate = els.birthDate?.value?.trim() || "";
   const birthTime = els.birthTime?.value?.trim() || "";
   const birthPlace = els.birthPlace?.value?.trim() || "";
-  const lat = Number(els.birthLat?.value || "");
-  const lon = Number(els.birthLon?.value || "");
+  const latRaw = els.birthLat?.value ?? "";
+  const lonRaw = els.birthLon?.value ?? "";
   const timeZone = els.birthTimezone?.value?.trim() || "";
 
-  if (!birthDate || !birthTime || !birthPlace || Number.isNaN(lat) || Number.isNaN(lon) || !timeZone) {
-    alert("Enter date and time, then choose a birth place from the suggestions.");
+  const lat = Number(latRaw);
+  const lon = Number(lonRaw);
+
+  const missing = [];
+
+  if (!birthDate) missing.push("birth date");
+  if (!birthTime) missing.push("birth time");
+  if (!birthPlace) missing.push("birth place");
+  if (!latRaw || Number.isNaN(lat)) missing.push("latitude");
+  if (!lonRaw || Number.isNaN(lon)) missing.push("longitude");
+  if (!timeZone) missing.push("timezone");
+
+  if (missing.length) {
+    console.error("Form validation failed:", {
+      birthDate,
+      birthTime,
+      birthPlace,
+      latRaw,
+      lonRaw,
+      lat,
+      lon,
+      timeZone,
+      missing
+    });
+
+    alert(
+      `Missing or invalid: ${missing.join(", ")}.\n\n` +
+      `Date: ${birthDate || "missing"}\n` +
+      `Time: ${birthTime || "missing"}\n` +
+      `Place: ${birthPlace || "missing"}\n` +
+      `Latitude: ${latRaw || "missing"}\n` +
+      `Longitude: ${lonRaw || "missing"}\n` +
+      `Timezone: ${timeZone || "missing"}`
+    );
     return;
   }
 
@@ -303,7 +340,6 @@ function highlightUserPlacements({
   ascPada
 }) {
   clearHighlights();
-
   highlightSingle("moon", moonNakshatra, moonPada);
   highlightSingle("sun", sunNakshatra, sunPada);
   highlightSingle("asc", ascNakshatra, ascPada);
@@ -436,12 +472,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
