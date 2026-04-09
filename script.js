@@ -19,9 +19,9 @@ const nakshatras = [
   { label: "🐍 Rohini",             ruler: "Moon"    },
   { label: "🐍 Mrigashirsha",       ruler: "Mars"    },
   { label: "🐕 Ardra",              ruler: "Rahu"    },
-  { label: "🐈‍⬛ Punarvasu",          ruler: "Jupiter" },
+  { label: "🐈‍⬛ Punarvasu",        ruler: "Jupiter" },
   { label: "🐐 Pushya",             ruler: "Saturn"  },
-  { label: "🐈‍⬛ Ashlesha",           ruler: "Mercury" },
+  { label: "🐈‍⬛ Ashlesha",         ruler: "Mercury" },
   { label: "🐀 Magha",              ruler: "Ketu"    },
   { label: "🐀 Purva Phalguni",     ruler: "Venus"   },
   { label: "🐄 Uttara Phalguni",    ruler: "Sun"     },
@@ -87,6 +87,7 @@ const els = {
   birthPlace: document.getElementById("birth-place"),
   birthLat: document.getElementById("birth-lat"),
   birthLon: document.getElementById("birth-lon"),
+  birthTimezone: document.getElementById("birth-timezone"),
   placeSuggestions: document.getElementById("place-suggestions"),
   placeStatus: document.getElementById("place-status"),
   clearBtn: document.getElementById("clear-highlights")
@@ -123,6 +124,7 @@ async function handlePlaceInput() {
 
   els.birthLat.value = "";
   els.birthLon.value = "";
+  if (els.birthTimezone) els.birthTimezone.value = "";
 
   if (query.length < 2) {
     renderPlaceSuggestions([]);
@@ -183,11 +185,13 @@ function handlePlaceSelection() {
   if (!match) {
     els.birthLat.value = "";
     els.birthLon.value = "";
+    if (els.birthTimezone) els.birthTimezone.value = "";
     return;
   }
 
   els.birthLat.value = String(match.lat);
   els.birthLon.value = String(match.lon);
+  if (els.birthTimezone) els.birthTimezone.value = match.timezone || "";
   els.birthPlace.value = match.display_name;
   setPlaceStatus("Place selected.");
 }
@@ -200,18 +204,19 @@ async function handleFormSubmit(event) {
   const birthPlace = els.birthPlace?.value?.trim() || "";
   const lat = Number(els.birthLat?.value || "");
   const lon = Number(els.birthLon?.value || "");
+  const timeZone = els.birthTimezone?.value?.trim() || "";
 
-  if (!birthDate || !birthTime || !birthPlace || Number.isNaN(lat) || Number.isNaN(lon)) {
+  if (!birthDate || !birthTime || !birthPlace || Number.isNaN(lat) || Number.isNaN(lon) || !timeZone) {
     alert("Enter date and time, then choose a birth place from the suggestions.");
     return;
   }
 
-  state.birthInput = { birthDate, birthTime, birthPlace, lat, lon };
+  state.birthInput = { birthDate, birthTime, birthPlace, lat, lon, timeZone };
 
   try {
     setFormBusy(true);
 
-    const date = await buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon);
+    const date = buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone);
 
     const sky = getSkySnapshot(date);
     const lagna = getAscendant({ date, lat, lon });
@@ -240,14 +245,16 @@ async function handleFormSubmit(event) {
   }
 }
 
-async function buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon) {
+function buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone) {
   const { year, month, day } = parseDateParts(birthDate);
   const { hour, minute } = parseTimeParts(birthTime);
 
-  const timezoneHours = await lookupTimezoneOffsetHours(lat, lon);
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+  const offsetMinutes = getTimeZoneOffsetMinutes(timeZone, utcGuess);
+
   const utcMillis =
-    Date.UTC(year, month - 1, day, hour, minute) -
-    timezoneHours * 60 * 60 * 1000;
+    Date.UTC(year, month - 1, day, hour, minute, 0) -
+    offsetMinutes * 60 * 1000;
 
   const date = new Date(utcMillis);
 
@@ -258,22 +265,34 @@ async function buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon) {
   return date;
 }
 
-async function lookupTimezoneOffsetHours(lat, lon) {
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-  url.searchParams.set("latitude", String(lat));
-  url.searchParams.set("longitude", String(lon));
-  url.searchParams.set("timezone", "auto");
-  url.searchParams.set("current", "temperature_2m");
+function getTimeZoneOffsetMinutes(timeZone, date) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  });
 
-  const response = await fetch(url.toString());
+  const parts = Object.fromEntries(
+    dtf.formatToParts(date)
+      .filter((p) => p.type !== "literal")
+      .map((p) => [p.type, p.value])
+  );
 
-  if (!response.ok) {
-    throw new Error(`Timezone lookup failed with ${response.status}`);
-  }
+  const asUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
 
-  const data = await response.json();
-  const offsetSeconds = Number(data.utc_offset_seconds || 0);
-  return offsetSeconds / 3600;
+  return (asUTC - date.getTime()) / 60000;
 }
 
 function highlightUserPlacements({
@@ -331,6 +350,7 @@ function clearHighlightsAndInputs() {
 
   if (els.birthLat) els.birthLat.value = "";
   if (els.birthLon) els.birthLon.value = "";
+  if (els.birthTimezone) els.birthTimezone.value = "";
 
   state.birthInput = null;
   state.apiResult = null;
@@ -392,12 +412,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
