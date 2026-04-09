@@ -392,12 +392,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    Mrigashira: "Mrigashirsha",
-    Jyeshtha: "Jyestha",
-    Dhanishtha: "Dhanishta",
-    Shatabisha: "Shatabhisha",
-    Purva Bhadrapada: "Purva Bhadrapadha",
-    Uttara Bhadrapada: "Uttara Bhadrapadha"
+    "Mrigashira": "Mrigashirsha",
+    "Jyeshtha": "Jyestha",
+    "Dhanishtha": "Dhanishta",
+    "Shatabisha": "Shatabhisha",
+    "Purva Bhadrapada": "Purva Bhadrapadha",
+    "Uttara Bhadrapada": "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
