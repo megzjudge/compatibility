@@ -9,6 +9,7 @@
  *
  * @see https://kalmanas.com
  * @license MIT
+ * https://github.com/heirmez/vedic-ephemeris/tree/main
  */
 
 // ---------------------------------------------------------------------------
