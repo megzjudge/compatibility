@@ -122,11 +122,8 @@ function bindEvents() {
 async function handlePlaceInput() {
   const query = els.birthPlace?.value?.trim() || "";
 
-  els.birthLat.value = "";
-  els.birthLon.value = "";
-  if (els.birthTimezone) els.birthTimezone.value = "";
-
   if (query.length < 2) {
+    clearLockedPlaceFields();
     renderPlaceSuggestions([]);
     setPlaceStatus("");
     return;
@@ -143,6 +140,15 @@ async function handlePlaceInput() {
 
     renderPlaceSuggestions(state.placeResults);
 
+    const existingMatch = findMatchingPlace(query);
+
+    if (existingMatch) {
+      lockPlace(existingMatch);
+      return;
+    }
+
+    clearLockedPlaceFields();
+
     if (state.placeResults.length > 0) {
       setPlaceStatus("Choose a suggested place to lock coordinates.");
     } else {
@@ -150,6 +156,7 @@ async function handlePlaceInput() {
     }
   } catch (error) {
     console.error("Place search failed:", error);
+    clearLockedPlaceFields();
     renderPlaceSuggestions([]);
     setPlaceStatus("");
   }
@@ -167,27 +174,52 @@ function renderPlaceSuggestions(results) {
   });
 }
 
-function handlePlaceSelection() {
+async function handlePlaceSelection() {
   const typed = els.birthPlace?.value?.trim() || "";
+  if (!typed) {
+    clearLockedPlaceFields();
+    setPlaceStatus("");
+    return;
+  }
 
-  const exact = state.placeResults.find(
-    (place) => place.display_name.trim().toLowerCase() === typed.toLowerCase()
-  );
-
-  const prefix = state.placeResults.find(
-    (place) => place.display_name.toLowerCase().startsWith(typed.toLowerCase())
-  );
-
-  const match = exact || prefix;
+  let match = findMatchingPlace(typed);
 
   if (!match) {
-    els.birthLat.value = "";
-    els.birthLon.value = "";
-    if (els.birthTimezone) els.birthTimezone.value = "";
+    match = await resolvePlaceFromText(typed);
+  }
+
+  if (!match) {
+    clearLockedPlaceFields();
     setPlaceStatus("Selected place did not lock coordinates.");
     return;
   }
 
+  lockPlace(match);
+}
+
+function findMatchingPlace(typed) {
+  const lower = typed.trim().toLowerCase();
+
+  const exact = state.placeResults.find(
+    (place) => place.display_name.trim().toLowerCase() === lower
+  );
+
+  if (exact) return exact;
+
+  const prefix = state.placeResults.find(
+    (place) => place.display_name.toLowerCase().startsWith(lower)
+  );
+
+  if (prefix) return prefix;
+
+  const contains = state.placeResults.find(
+    (place) => place.display_name.toLowerCase().includes(lower)
+  );
+
+  return contains || null;
+}
+
+function lockPlace(match) {
   els.birthLat.value = String(match.lat);
   els.birthLon.value = String(match.lon);
   if (els.birthTimezone) els.birthTimezone.value = match.timezone || "";
@@ -200,20 +232,17 @@ function handlePlaceSelection() {
   }
 }
 
+function clearLockedPlaceFields() {
+  els.birthLat.value = "";
+  els.birthLon.value = "";
+  if (els.birthTimezone) els.birthTimezone.value = "";
+}
+
 async function resolvePlaceFromText(placeText) {
   const typed = placeText.trim().toLowerCase();
 
-  const exact = state.placeResults.find(
-    (place) => place.display_name.trim().toLowerCase() === typed
-  );
-
-  const prefix = state.placeResults.find(
-    (place) => place.display_name.toLowerCase().startsWith(typed)
-  );
-
-  if (exact || prefix) {
-    return exact || prefix;
-  }
+  const localMatch = findMatchingPlace(typed);
+  if (localMatch) return localMatch;
 
   try {
     const response = await fetch(`/api/places?q=${encodeURIComponent(placeText)}`);
@@ -234,7 +263,11 @@ async function resolvePlaceFromText(placeText) {
       (place) => place.display_name.toLowerCase().startsWith(typed)
     );
 
-    return exactFetched || prefixFetched || places[0] || null;
+    const containsFetched = places.find(
+      (place) => place.display_name.toLowerCase().includes(typed)
+    );
+
+    return exactFetched || prefixFetched || containsFetched || places[0] || null;
   } catch (error) {
     console.error("Fallback place resolution failed:", error);
     return null;
@@ -255,17 +288,11 @@ async function handleFormSubmit(event) {
     const resolved = await resolvePlaceFromText(birthPlace);
 
     if (resolved) {
-      els.birthLat.value = String(resolved.lat);
-      els.birthLon.value = String(resolved.lon);
-      if (els.birthTimezone) els.birthTimezone.value = resolved.timezone || "";
-      els.birthPlace.value = resolved.display_name;
-
+      lockPlace(resolved);
       latRaw = els.birthLat.value;
       lonRaw = els.birthLon.value;
       timeZone = els.birthTimezone?.value?.trim() || "";
       birthPlace = els.birthPlace.value.trim();
-
-      setPlaceStatus(`Place selected. Timezone: ${timeZone || "missing"}`);
     }
   }
 
@@ -291,7 +318,8 @@ async function handleFormSubmit(event) {
       lat,
       lon,
       timeZone,
-      missing
+      missing,
+      placeResults: state.placeResults
     });
 
     alert(
@@ -467,9 +495,7 @@ function clearHighlightsAndInputs() {
     els.placeSuggestions.innerHTML = "";
   }
 
-  if (els.birthLat) els.birthLat.value = "";
-  if (els.birthLon) els.birthLon.value = "";
-  if (els.birthTimezone) els.birthTimezone.value = "";
+  clearLockedPlaceFields();
 
   state.birthInput = null;
   state.apiResult = null;
@@ -531,12 +557,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
