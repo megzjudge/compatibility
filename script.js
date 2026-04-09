@@ -169,19 +169,26 @@ function renderPlaceSuggestions(results) {
 
 function handlePlaceSelection() {
   const typed = els.birthPlace?.value?.trim() || "";
-  const match = state.placeResults.find((place) => place.display_name === typed);
+
+  const exact = state.placeResults.find(
+    (place) => place.display_name.trim().toLowerCase() === typed.toLowerCase()
+  );
+
+  const prefix = state.placeResults.find(
+    (place) => place.display_name.toLowerCase().startsWith(typed.toLowerCase())
+  );
+
+  const match = exact || prefix;
 
   if (!match) {
     els.birthLat.value = "";
     els.birthLon.value = "";
-    if (typed) {
-      setPlaceStatus("Pick a place from the suggestions.");
-    }
     return;
   }
 
   els.birthLat.value = String(match.lat);
   els.birthLon.value = String(match.lon);
+  els.birthPlace.value = match.display_name;
   setPlaceStatus("Place selected.");
 }
 
@@ -238,9 +245,17 @@ async function buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon) {
   const { hour, minute } = parseTimeParts(birthTime);
 
   const timezoneHours = await lookupTimezoneOffsetHours(lat, lon);
-  const utcMillis = Date.UTC(year, month - 1, day, hour, minute) - timezoneHours * 60 * 60 * 1000;
+  const utcMillis =
+    Date.UTC(year, month - 1, day, hour, minute) -
+    timezoneHours * 60 * 60 * 1000;
 
-  return new Date(utcMillis);
+  const date = new Date(utcMillis);
+
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new Error("Failed to build a valid UTC Date.");
+  }
+
+  return date;
 }
 
 async function lookupTimezoneOffsetHours(lat, lon) {
