@@ -1,4 +1,4 @@
-import SwissEph from "./vendor/swisseph.js";
+import SwissEph from "./swisseph.js";
 
 const NAKSHATRA_SPAN = 13 + 1 / 3; // 13°20'
 const PADA_SPAN = 3 + 1 / 3; // 3°20'
