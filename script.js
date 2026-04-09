@@ -148,7 +148,7 @@ async function handlePlaceInput() {
     if (state.placeResults.length > 0) {
       setPlaceStatus("Choose a suggested place to lock coordinates.");
     } else {
-      setPlaceStatus("No matching places found.");
+      setPlaceStatus("");
     }
   } catch (error) {
     console.error("Place search failed:", error);
