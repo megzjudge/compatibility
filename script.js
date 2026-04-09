@@ -122,6 +122,7 @@ function bindEvents() {
 async function handlePlaceInput() {
   const query = els.birthPlace?.value?.trim() || "";
 
+  // Clear locked location values only while typing a new query
   els.birthLat.value = "";
   els.birthLon.value = "";
   if (els.birthTimezone) els.birthTimezone.value = "";
@@ -133,8 +134,6 @@ async function handlePlaceInput() {
   }
 
   try {
-    setPlaceStatus("Searching places...");
-
     const response = await fetch(`/api/places?q=${encodeURIComponent(query)}`);
     if (!response.ok) {
       throw new Error(`Place lookup failed with ${response.status}`);
@@ -153,7 +152,7 @@ async function handlePlaceInput() {
   } catch (error) {
     console.error("Place search failed:", error);
     renderPlaceSuggestions([]);
-    setPlaceStatus("Could not load place suggestions.");
+    setPlaceStatus("");
   }
 }
 
@@ -304,6 +303,7 @@ function highlightUserPlacements({
   ascPada
 }) {
   clearHighlights();
+
   highlightSingle("moon", moonNakshatra, moonPada);
   highlightSingle("sun", sunNakshatra, sunPada);
   highlightSingle("asc", ascNakshatra, ascPada);
@@ -320,12 +320,28 @@ function highlightSingle(column, nakshatra, pada) {
     const sub = el.querySelector(".pill-sub");
     const subText = sub ? sub.textContent.replace(/[()]/g, "").trim() : "";
 
-    if (!subText) return;
+    let padaMatches = false;
 
-    const options = subText.split("/").map((v) => v.trim());
-    if (options.includes(String(pada))) {
-      el.classList.add("is-user-match");
-      el.setAttribute("aria-current", "true");
+    if (!subText) {
+      padaMatches = true;
+    } else {
+      const options = subText.split("/").map((v) => v.trim());
+      padaMatches = options.includes(String(pada));
+    }
+
+    if (!padaMatches) return;
+
+    el.classList.add("is-user-match");
+    el.setAttribute("aria-current", "true");
+
+    const valueCell = el.closest("td");
+    if (valueCell) {
+      valueCell.classList.add("cell-match");
+
+      const scoreCell = valueCell.nextElementSibling;
+      if (scoreCell && scoreCell.classList.contains("score")) {
+        scoreCell.classList.add("score-match");
+      }
     }
   });
 }
@@ -334,6 +350,14 @@ function clearHighlights() {
   document.querySelectorAll(".nak.is-user-match").forEach((el) => {
     el.classList.remove("is-user-match");
     el.removeAttribute("aria-current");
+  });
+
+  document.querySelectorAll("td.cell-match").forEach((td) => {
+    td.classList.remove("cell-match");
+  });
+
+  document.querySelectorAll("td.score-match").forEach((td) => {
+    td.classList.remove("score-match");
   });
 }
 
@@ -412,12 +436,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
