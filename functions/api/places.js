@@ -22,16 +22,13 @@ export async function onRequestGet(context) {
   const results = Array.isArray(data?.results) ? data.results : [];
 
   const cleaned = results.map((item) => {
-    const parts = [
-      item.name,
-      item.admin1,
-      item.country
-    ].filter(Boolean);
+    const parts = [item.name, item.admin1, item.country].filter(Boolean);
 
     return {
       display_name: parts.join(", "),
       lat: Number(item.latitude),
-      lon: Number(item.longitude)
+      lon: Number(item.longitude),
+      timezone: item.timezone || ""
     };
   });
 
