@@ -124,7 +124,7 @@ async function handlePlaceInput() {
   els.birthLat.value = "";
   els.birthLon.value = "";
 
-  if (query.length < 3) {
+  if (query.length < 2) {
     renderPlaceSuggestions([]);
     setPlaceStatus("");
     return;
@@ -204,7 +204,7 @@ async function handleFormSubmit(event) {
   try {
     setFormBusy(true);
 
-    const date = buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon);
+    const date = await buildUTCDateFromLocalInputs(birthDate, birthTime, lat, lon);
 
     const sky = getSkySnapshot(date);
     const lagna = getAscendant({ date, lat, lon });
@@ -375,11 +375,16 @@ function parseTimeParts(value) {
 
 function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
+
   const aliases = {
+    Mrigashira: "Mrigashirsha",
     Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
     Shatabisha: "Shatabhisha",
-    Dhanishtha: "Dhanishta"
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
+
   return aliases[value] || value;
 }
 
