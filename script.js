@@ -200,15 +200,74 @@ function handlePlaceSelection() {
   }
 }
 
+async function resolvePlaceFromText(placeText) {
+  const typed = placeText.trim().toLowerCase();
+
+  const exact = state.placeResults.find(
+    (place) => place.display_name.trim().toLowerCase() === typed
+  );
+
+  const prefix = state.placeResults.find(
+    (place) => place.display_name.toLowerCase().startsWith(typed)
+  );
+
+  if (exact || prefix) {
+    return exact || prefix;
+  }
+
+  try {
+    const response = await fetch(`/api/places?q=${encodeURIComponent(placeText)}`);
+    if (!response.ok) {
+      throw new Error(`Place lookup failed with ${response.status}`);
+    }
+
+    const results = await response.json();
+    const places = Array.isArray(results) ? results : [];
+    state.placeResults = places;
+    renderPlaceSuggestions(places);
+
+    const exactFetched = places.find(
+      (place) => place.display_name.trim().toLowerCase() === typed
+    );
+
+    const prefixFetched = places.find(
+      (place) => place.display_name.toLowerCase().startsWith(typed)
+    );
+
+    return exactFetched || prefixFetched || places[0] || null;
+  } catch (error) {
+    console.error("Fallback place resolution failed:", error);
+    return null;
+  }
+}
+
 async function handleFormSubmit(event) {
   event.preventDefault();
 
-  const birthDate = els.birthDate?.value?.trim() || "";
-  const birthTime = els.birthTime?.value?.trim() || "";
-  const birthPlace = els.birthPlace?.value?.trim() || "";
-  const latRaw = els.birthLat?.value ?? "";
-  const lonRaw = els.birthLon?.value ?? "";
-  const timeZone = els.birthTimezone?.value?.trim() || "";
+  let birthDate = els.birthDate?.value?.trim() || "";
+  let birthTime = els.birthTime?.value?.trim() || "";
+  let birthPlace = els.birthPlace?.value?.trim() || "";
+  let latRaw = els.birthLat?.value ?? "";
+  let lonRaw = els.birthLon?.value ?? "";
+  let timeZone = els.birthTimezone?.value?.trim() || "";
+
+  if (birthPlace && (!latRaw || !lonRaw || !timeZone)) {
+    const resolved = await resolvePlaceFromText(birthPlace);
+
+    if (resolved) {
+      els.birthLat.value = String(resolved.lat);
+      els.birthLon.value = String(resolved.lon);
+      if (els.birthTimezone) els.birthTimezone.value = resolved.timezone || "";
+      els.birthPlace.value = resolved.display_name;
+
+      latRaw = els.birthLat.value;
+      lonRaw = els.birthLon.value;
+      timeZone = els.birthTimezone?.value?.trim() || "";
+      birthPlace = els.birthPlace.value.trim();
+
+      setPlaceStatus(`Place selected. Timezone: ${timeZone || "missing"}`);
+    }
+  }
 
   const lat = Number(latRaw);
   const lon = Number(lonRaw);
@@ -472,12 +531,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
