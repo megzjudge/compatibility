@@ -26,8 +26,8 @@ export async function onRequestGet(context) {
 
   const cleaned = (Array.isArray(data) ? data : []).map((item) => ({
     display_name: item.display_name,
-    lat: item.lat,
-    lon: item.lon
+    lat: Number(item.lat),
+    lon: Number(item.lon)
   }));
 
   return json(cleaned);
