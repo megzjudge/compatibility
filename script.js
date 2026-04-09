@@ -1,3 +1,8 @@
+import SwissEph from "./vendor/swisseph.js";
+
+const NAKSHATRA_SPAN = 13 + 1 / 3; // 13°20'
+const PADA_SPAN = 3 + 1 / 3; // 3°20'
+
 const baseColors = [
   { planet: "Sun", hex: "#EAA565" },
   { planet: "Moon", hex: "#CACACA" },
@@ -17,9 +22,9 @@ const nakshatras = [
   { label: "🐍 Rohini",             ruler: "Moon"    },
   { label: "🐍 Mrigashirsha",       ruler: "Mars"    },
   { label: "🐕 Ardra",              ruler: "Rahu"    },
-  { label: "🐈‍⬛ Punarvasu",          ruler: "Jupiter" },
+  { label: "🐈‍⬛ Punarvasu",         ruler: "Jupiter" },
   { label: "🐐 Pushya",             ruler: "Saturn"  },
-  { label: "🐈‍⬛ Ashlesha",           ruler: "Mercury" },
+  { label: "🐈‍⬛ Ashlesha",          ruler: "Mercury" },
   { label: "🐀 Magha",              ruler: "Ketu"    },
   { label: "🐀 Purva Phalguni",     ruler: "Venus"   },
   { label: "🐄 Uttara Phalguni",    ruler: "Sun"     },
@@ -61,7 +66,6 @@ const nakshatraMap = Object.fromEntries(
     const firstSpace = label.indexOf(" ");
     const animal = label.slice(0, firstSpace);
     const name = label.slice(firstSpace + 1);
-
     return [name, { animal, ruler }];
   })
 );
@@ -73,7 +77,39 @@ if (nakshatraMap["Shatabhisha"]) {
   nakshatraMap["Shatabisha"] = nakshatraMap["Shatabhisha"];
 }
 
+const nakshatraNames = [
+  "Ashwini",
+  "Bharani",
+  "Krittika",
+  "Rohini",
+  "Mrigashirsha",
+  "Ardra",
+  "Punarvasu",
+  "Pushya",
+  "Ashlesha",
+  "Magha",
+  "Purva Phalguni",
+  "Uttara Phalguni",
+  "Hasta",
+  "Chitra",
+  "Swati",
+  "Vishakha",
+  "Anuradha",
+  "Jyestha",
+  "Mula",
+  "Purva Ashadha",
+  "Uttara Ashadha",
+  "Shravana",
+  "Dhanishta",
+  "Shatabhisha",
+  "Purva Bhadrapadha",
+  "Uttara Bhadrapadha",
+  "Revati"
+];
+
 const state = {
+  swe: null,
+  sweReady: false,
   birthInput: null,
   apiResult: null,
   placeResults: []
@@ -91,9 +127,25 @@ const els = {
   clearBtn: document.getElementById("clear-highlights")
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await initSwissEph();
+  } catch (error) {
+    console.error("Swiss Ephemeris init failed:", error);
+    setPlaceStatus("Astrology engine failed to load.");
+  }
+
   bindEvents();
 });
+
+async function initSwissEph() {
+  if (state.sweReady) return;
+
+  state.swe = new SwissEph();
+  await state.swe.initSwissEph();
+
+  state.sweReady = true;
+}
 
 function bindEvents() {
   if (els.form) {
@@ -149,12 +201,14 @@ async function handlePlaceInput() {
     }
   } catch (error) {
     console.error("Place search failed:", error);
-    setPlaceStatus("Could not load place suggestions.");
     renderPlaceSuggestions([]);
+    setPlaceStatus("Could not load place suggestions.");
   }
 }
 
 function renderPlaceSuggestions(results) {
+  if (!els.placeSuggestions) return;
+
   els.placeSuggestions.innerHTML = "";
 
   results.forEach((place) => {
@@ -185,13 +239,18 @@ function handlePlaceSelection() {
 async function handleFormSubmit(event) {
   event.preventDefault();
 
+  if (!state.sweReady) {
+    alert("Astrology engine is not ready yet.");
+    return;
+  }
+
   const birthDate = els.birthDate?.value?.trim() || "";
   const birthTime = els.birthTime?.value?.trim() || "";
   const birthPlace = els.birthPlace?.value?.trim() || "";
-  const lat = els.birthLat?.value?.trim() || "";
-  const lon = els.birthLon?.value?.trim() || "";
+  const lat = Number(els.birthLat?.value || "");
+  const lon = Number(els.birthLon?.value || "");
 
-  if (!birthDate || !birthTime || !birthPlace || !lat || !lon) {
+  if (!birthDate || !birthTime || !birthPlace || Number.isNaN(lat) || Number.isNaN(lon)) {
     alert("Enter date and time, then choose a birth place from the suggestions.");
     return;
   }
@@ -201,54 +260,152 @@ async function handleFormSubmit(event) {
   try {
     setFormBusy(true);
 
-    const response = await fetch("/api/astro", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        birthDate,
-        birthTime,
-        birthPlace,
-        lat: Number(lat),
-        lon: Number(lon)
-      })
+    const result = await calculateNakshatraPlacements({
+      birthDate,
+      birthTime,
+      lat,
+      lon
     });
 
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new Error(text || `Request failed with status ${response.status}`);
-    }
-
-    const result = await response.json();
     state.apiResult = result;
 
-    highlightUserPlacements(normalizeApiResult(result));
+    highlightUserPlacements(result);
+
+    setPlaceStatus(
+      `Moon ${result.moonNakshatra} (${result.moonPada}) · Sun ${result.sunNakshatra} (${result.sunPada}) · Asc ${result.ascNakshatra} (${result.ascPada})`
+    );
   } catch (error) {
-    console.error("Astrology lookup failed:", error);
-    alert(`Could not fetch chart details: ${error.message}`);
+    console.error("Astrology calculation failed:", error);
+    alert(`Could not calculate chart: ${error.message}`);
   } finally {
     setFormBusy(false);
   }
 }
 
-function normalizeApiResult(result) {
+async function calculateNakshatraPlacements({ birthDate, birthTime, lat, lon }) {
+  const { year, month, day } = parseDateParts(birthDate);
+  const { hour, minute } = parseTimeParts(birthTime);
+
+  const timezoneHours = await lookupTimezoneOffsetHours(lat, lon);
+  const utcHour = hour + minute / 60 - timezoneHours;
+
+  const jdUt = state.swe.julday(year, month, day, utcHour);
+
+  // Wrapper-specific section:
+  // These names are the classic Swiss Ephemeris-style ones.
+  state.swe.set_sid_mode(
+    state.swe.SE_SIDM_KRISHNAMURTI,
+    0,
+    0
+  );
+
+  const siderealFlags =
+    state.swe.SEFLG_SWIEPH |
+    state.swe.SEFLG_SPEED |
+    state.swe.SEFLG_SIDEREAL;
+
+  const sunRaw = state.swe.calc_ut(jdUt, state.swe.SE_SUN, siderealFlags);
+  const moonRaw = state.swe.calc_ut(jdUt, state.swe.SE_MOON, siderealFlags);
+  const ascRaw = calculateSiderealAscendant(jdUt, lat, lon);
+
+  const sunLongitude = extractLongitude(sunRaw, "Sun");
+  const moonLongitude = extractLongitude(moonRaw, "Moon");
+  const ascLongitude = normalize360(ascRaw.ascendant);
+
+  const sun = longitudeToNakshatraAndPada(sunLongitude);
+  const moon = longitudeToNakshatraAndPada(moonLongitude);
+  const asc = longitudeToNakshatraAndPada(ascLongitude);
+
   return {
-    moonNakshatra: normalizeNakshatraName(
-      result?.moonNakshatra || result?.moon?.nakshatra || ""
-    ),
-    moonPada: String(result?.moonPada || result?.moon?.pada || "").trim(),
-
-    sunNakshatra: normalizeNakshatraName(
-      result?.sunNakshatra || result?.sun?.nakshatra || ""
-    ),
-    sunPada: String(result?.sunPada || result?.sun?.pada || "").trim(),
-
-    ascNakshatra: normalizeNakshatraName(
-      result?.ascNakshatra || result?.ascendant?.nakshatra || result?.asc?.nakshatra || ""
-    ),
-    ascPada: String(result?.ascPada || result?.ascendant?.pada || result?.asc?.pada || "").trim()
+    moonNakshatra: moon.name,
+    moonPada: String(moon.pada),
+    sunNakshatra: sun.name,
+    sunPada: String(sun.pada),
+    ascNakshatra: asc.name,
+    ascPada: String(asc.pada)
   };
+}
+
+function calculateSiderealAscendant(jdUt, lat, lon) {
+  let raw;
+
+  if (typeof state.swe.houses_ex === "function") {
+    raw = state.swe.houses_ex(
+      jdUt,
+      state.swe.SEFLG_SIDEREAL,
+      lat,
+      lon,
+      "P"
+    );
+  } else if (typeof state.swe.houses === "function") {
+    raw = state.swe.houses(jdUt, lat, lon, "P");
+  } else {
+    throw new Error("No house calculation function found on SwissEph wrapper.");
+  }
+
+  if (raw?.ascendant != null) {
+    return { ascendant: raw.ascendant };
+  }
+
+  if (Array.isArray(raw) && Array.isArray(raw[1]) && raw[1][0] != null) {
+    return { ascendant: raw[1][0] };
+  }
+
+  if (raw?.ascmc && raw.ascmc[0] != null) {
+    return { ascendant: raw.ascmc[0] };
+  }
+
+  throw new Error("Could not read Ascendant from house calculation result.");
+}
+
+function extractLongitude(raw, label) {
+  if (typeof raw === "number") {
+    return normalize360(raw);
+  }
+
+  if (Array.isArray(raw) && raw[0] != null) {
+    return normalize360(raw[0]);
+  }
+
+  if (raw?.longitude != null) {
+    return normalize360(raw.longitude);
+  }
+
+  if (raw?.xx && Array.isArray(raw.xx) && raw.xx[0] != null) {
+    return normalize360(raw.xx[0]);
+  }
+
+  throw new Error(`Could not read ${label} longitude from ephemeris result.`);
+}
+
+function longitudeToNakshatraAndPada(longitude) {
+  const safeLongitude = normalize360(longitude);
+  const nakIndex = Math.floor(safeLongitude / NAKSHATRA_SPAN);
+  const remainder = safeLongitude - nakIndex * NAKSHATRA_SPAN;
+  const pada = Math.floor(remainder / PADA_SPAN) + 1;
+
+  return {
+    name: nakshatraNames[nakIndex],
+    pada
+  };
+}
+
+async function lookupTimezoneOffsetHours(lat, lon) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(lat));
+  url.searchParams.set("longitude", String(lon));
+  url.searchParams.set("timezone", "auto");
+  url.searchParams.set("current", "temperature_2m");
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Timezone lookup failed with ${response.status}`);
+  }
+
+  const data = await response.json();
+  const offsetSeconds = Number(data.utc_offset_seconds || 0);
+  return offsetSeconds / 3600;
 }
 
 function highlightUserPlacements({
@@ -277,7 +434,10 @@ function highlightSingle(column, nakshatra, pada) {
     const sub = el.querySelector(".pill-sub");
     const subText = sub ? sub.textContent.replace(/[()]/g, "").trim() : "";
 
-    if (!pada || !subText || subText === pada || subText.split("/").includes(pada)) {
+    if (!subText) return;
+
+    const options = subText.split("/").map((v) => v.trim());
+    if (options.includes(String(pada))) {
       el.classList.add("is-user-match");
       el.setAttribute("aria-current", "true");
     }
@@ -302,6 +462,9 @@ function clearHighlightsAndInputs() {
     els.placeSuggestions.innerHTML = "";
   }
 
+  if (els.birthLat) els.birthLat.value = "";
+  if (els.birthLon) els.birthLon.value = "";
+
   state.birthInput = null;
   state.apiResult = null;
   state.placeResults = [];
@@ -323,7 +486,7 @@ function setFormBusy(isBusy) {
 
   const submitBtn = els.form?.querySelector('button[type="submit"]');
   if (submitBtn) {
-    submitBtn.textContent = isBusy ? "Looking up chart..." : "Highlight placements";
+    submitBtn.textContent = isBusy ? "Calculating..." : "Highlight placements";
   }
 }
 
@@ -331,6 +494,37 @@ function setPlaceStatus(text) {
   if (els.placeStatus) {
     els.placeStatus.textContent = text;
   }
+}
+
+function parseDateParts(value) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    throw new Error("Birth date must be YYYY-MM-DD.");
+  }
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3])
+  };
+}
+
+function parseTimeParts(value) {
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) {
+    throw new Error("Birth time must be HH:MM.");
+  }
+
+  return {
+    hour: Number(match[1]),
+    minute: Number(match[2])
+  };
+}
+
+function normalize360(value) {
+  let x = Number(value) % 360;
+  if (x < 0) x += 360;
+  return x;
 }
 
 function normalizeNakshatraName(name) {
@@ -344,6 +538,7 @@ function normalizeNakshatraName(name) {
 
 function debounce(fn, wait = 250) {
   let timeout;
+
   return (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn(...args), wait);
@@ -354,5 +549,6 @@ function cssEscape(value) {
   if (window.CSS && typeof window.CSS.escape === "function") {
     return window.CSS.escape(value);
   }
+
   return String(value).replace(/["\\]/g, "\\$&");
 }
