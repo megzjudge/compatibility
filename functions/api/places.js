@@ -2,33 +2,38 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const q = (url.searchParams.get("q") || "").trim();
 
-  if (!q || q.length < 3) {
+  if (!q || q.length < 2) {
     return json([]);
   }
 
-  const searchUrl = new URL("https://nominatim.openstreetmap.org/search");
-  searchUrl.searchParams.set("q", q);
-  searchUrl.searchParams.set("format", "jsonv2");
-  searchUrl.searchParams.set("limit", "5");
-  searchUrl.searchParams.set("addressdetails", "1");
+  const searchUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+  searchUrl.searchParams.set("name", q);
+  searchUrl.searchParams.set("count", "5");
+  searchUrl.searchParams.set("language", "en");
+  searchUrl.searchParams.set("format", "json");
 
-  const response = await fetch(searchUrl.toString(), {
-    headers: {
-      "User-Agent": "compatibility-site/1.0"
-    }
-  });
+  const response = await fetch(searchUrl.toString());
 
   if (!response.ok) {
     return json([], 500);
   }
 
   const data = await response.json();
+  const results = Array.isArray(data?.results) ? data.results : [];
 
-  const cleaned = (Array.isArray(data) ? data : []).map((item) => ({
-    display_name: item.display_name,
-    lat: Number(item.lat),
-    lon: Number(item.lon)
-  }));
+  const cleaned = results.map((item) => {
+    const parts = [
+      item.name,
+      item.admin1,
+      item.country
+    ].filter(Boolean);
+
+    return {
+      display_name: parts.join(", "),
+      lat: Number(item.latitude),
+      lon: Number(item.longitude)
+    };
+  });
 
   return json(cleaned);
 }
