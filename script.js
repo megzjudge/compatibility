@@ -94,10 +94,21 @@ const els = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("script loaded", {
+    formFound: !!els.form,
+    birthPlaceFound: !!els.birthPlace,
+    timezoneFound: !!els.birthTimezone
+  });
   bindEvents();
 });
 
 function bindEvents() {
+  console.log("bindEvents ran", {
+    formFound: !!els.form,
+    birthPlaceFound: !!els.birthPlace,
+    timezoneFound: !!els.birthTimezone
+  });
+
   if (els.form) {
     els.form.addEventListener("submit", handleFormSubmit);
   }
@@ -138,6 +149,12 @@ async function handlePlaceInput() {
     const results = await response.json();
     state.placeResults = Array.isArray(results) ? results : [];
 
+    console.log("places fetched", {
+      query,
+      count: state.placeResults.length,
+      first: state.placeResults[0] || null
+    });
+
     renderPlaceSuggestions(state.placeResults);
 
     const existingMatch = findMatchingPlace(query);
@@ -176,6 +193,8 @@ function renderPlaceSuggestions(results) {
 
 async function handlePlaceSelection() {
   const typed = els.birthPlace?.value?.trim() || "";
+  console.log("handlePlaceSelection fired", { typed });
+
   if (!typed) {
     clearLockedPlaceFields();
     setPlaceStatus("");
@@ -185,12 +204,14 @@ async function handlePlaceSelection() {
   let match = findMatchingPlace(typed);
 
   if (!match) {
+    console.log("no local match, trying fallback fetch");
     match = await resolvePlaceFromText(typed);
   }
 
   if (!match) {
     clearLockedPlaceFields();
     setPlaceStatus("Selected place did not lock coordinates.");
+    console.warn("place selection failed to lock", { typed, placeResults: state.placeResults });
     return;
   }
 
@@ -203,13 +224,11 @@ function findMatchingPlace(typed) {
   const exact = state.placeResults.find(
     (place) => place.display_name.trim().toLowerCase() === lower
   );
-
   if (exact) return exact;
 
   const prefix = state.placeResults.find(
     (place) => place.display_name.toLowerCase().startsWith(lower)
   );
-
   if (prefix) return prefix;
 
   const contains = state.placeResults.find(
@@ -224,6 +243,13 @@ function lockPlace(match) {
   els.birthLon.value = String(match.lon);
   if (els.birthTimezone) els.birthTimezone.value = match.timezone || "";
   els.birthPlace.value = match.display_name;
+
+  console.log("Place locked:", {
+    display_name: match.display_name,
+    lat: match.lat,
+    lon: match.lon,
+    timezone: match.timezone || ""
+  });
 
   if (!match.timezone) {
     setPlaceStatus("Place selected, but timezone is missing.");
@@ -255,6 +281,12 @@ async function resolvePlaceFromText(placeText) {
     state.placeResults = places;
     renderPlaceSuggestions(places);
 
+    console.log("fallback places fetched", {
+      query: placeText,
+      count: places.length,
+      first: places[0] || null
+    });
+
     const exactFetched = places.find(
       (place) => place.display_name.trim().toLowerCase() === typed
     );
@@ -275,6 +307,7 @@ async function resolvePlaceFromText(placeText) {
 }
 
 async function handleFormSubmit(event) {
+  console.log("SUBMIT CLICKED - handleFormSubmit entered");
   event.preventDefault();
 
   let birthDate = els.birthDate?.value?.trim() || "";
@@ -284,8 +317,20 @@ async function handleFormSubmit(event) {
   let lonRaw = els.birthLon?.value ?? "";
   let timeZone = els.birthTimezone?.value?.trim() || "";
 
+  console.log("Raw form values at submit:", {
+    birthDate,
+    birthTime,
+    birthPlace,
+    latRaw,
+    lonRaw,
+    timeZone
+  });
+
   if (birthPlace && (!latRaw || !lonRaw || !timeZone)) {
+    console.log("Attempting fallback place resolution...");
     const resolved = await resolvePlaceFromText(birthPlace);
+
+    console.log("Fallback place resolution result:", resolved);
 
     if (resolved) {
       lockPlace(resolved);
@@ -339,7 +384,10 @@ async function handleFormSubmit(event) {
   try {
     setFormBusy(true);
 
-    const date = buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone);
+    const dateDebug = buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone);
+    const date = dateDebug.date;
+
+    console.log("Time conversion debug:", dateDebug);
 
     const sky = getSkySnapshot(date);
     const lagna = getAscendant({ date, lat, lon });
@@ -355,20 +403,44 @@ async function handleFormSubmit(event) {
 
     state.apiResult = result;
 
+    console.log("Astrology calculation success:", {
+      input: {
+        birthDate,
+        birthTime,
+        birthPlace,
+        lat,
+        lon,
+        timeZone
+      },
+      timeDebug: dateDebug,
+      result
+    });
+
     highlightUserPlacements(result);
 
     setPlaceStatus(
       `Moon ${result.moonNakshatra} (${result.moonPada}) · Sun ${result.sunNakshatra} (${result.sunPada}) · Asc ${result.ascNakshatra} (${result.ascPada})`
     );
   } catch (error) {
-    console.error("Astrology calculation failed:", error);
+    console.error("Astrology calculation failed:", {
+      input: {
+        birthDate,
+        birthTime,
+        birthPlace,
+        lat,
+        lon,
+        timeZone
+      },
+      error
+    });
+
     alert(`Could not calculate chart: ${error.message}`);
   } finally {
     setFormBusy(false);
   }
 }
 
-function buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone) {
+function buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone) {
   const { year, month, day } = parseDateParts(birthDate);
   const { hour, minute } = parseTimeParts(birthTime);
 
@@ -385,7 +457,20 @@ function buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone) {
     throw new Error("Failed to build a valid UTC Date.");
   }
 
-  return date;
+  return {
+    inputDate: birthDate,
+    inputTime: birthTime,
+    timeZone,
+    utcGuessIso: utcGuess.toISOString(),
+    offsetMinutes,
+    offsetHours: offsetMinutes / 60,
+    finalUtcIso: date.toISOString(),
+    date
+  };
+}
+
+function buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone) {
+  return buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone).date;
 }
 
 function getTimeZoneOffsetMinutes(timeZone, date) {
@@ -557,12 +642,12 @@ function normalizeNakshatraName(name) {
   const value = String(name || "").trim();
 
   const aliases = {
-    "Mrigashira": "Mrigashirsha",
-    "Jyeshtha": "Jyestha",
-    "Dhanishtha": "Dhanishta",
-    "Shatabisha": "Shatabhisha",
-    "Purva Bhadrapada": "Purva Bhadrapadha",
-    "Uttara Bhadrapada": "Uttara Bhadrapadha"
+    Mrigashira: "Mrigashirsha",
+    Jyeshtha: "Jyestha",
+    Dhanishtha: "Dhanishta",
+    Shatabisha: "Shatabhisha",
+    Purva Bhadrapada: "Purva Bhadrapadha",
+    Uttara Bhadrapada: "Uttara Bhadrapadha"
   };
 
   return aliases[value] || value;
