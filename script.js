@@ -468,7 +468,7 @@ async function handleFormSubmit(event) {
     const moonPlacements = moonDayDebug
       ? moonDayDebug.uniquePlacements.map((placement) => ({
           nakshatra: placement.nakshatra,
-          pada: null
+          pada: placement.pada
         }))
       : [];
 
@@ -839,8 +839,8 @@ function buildMoonNakshatraDayDebug(birthDate, timeZone) {
     const cursor = new Date(Math.min(cursorMs, dayEnd.getTime()));
     const currentPlacement = getMoonPlacementAt(cursor);
 
-    if (currentPlacement.nakshatra !== previousPlacement.nakshatra) {
-      const boundary = findMoonNakshatraBoundary(previousDate, cursor, previousPlacement.nakshatra);
+    if (!moonPlacementMatches(currentPlacement, previousPlacement)) {
+      const boundary = findMoonPlacementBoundary(previousDate, cursor, previousPlacement);
       const boundaryPlacement = getMoonPlacementAt(boundary);
       segments[segments.length - 1].end = boundary;
       segments.push({
@@ -862,7 +862,7 @@ function buildMoonNakshatraDayDebug(birthDate, timeZone) {
   const seen = new Set();
 
   segments.forEach((segment) => {
-    const key = segment.placement.nakshatra;
+    const key = moonPlacementKey(segment.placement);
     if (!seen.has(key)) {
       seen.add(key);
       uniquePlacements.push(segment.placement);
@@ -894,15 +894,24 @@ function getMoonPlacementAt(date) {
   };
 }
 
-function findMoonNakshatraBoundary(oldDate, newDate, oldNakshatra) {
+function moonPlacementKey(placement) {
+  return `${placement.nakshatra}|${placement.pada}`;
+}
+
+function moonPlacementMatches(a, b) {
+  return moonPlacementKey(a) === moonPlacementKey(b);
+}
+
+function findMoonPlacementBoundary(oldDate, newDate, oldPlacement) {
   let low = oldDate.getTime();
   let high = newDate.getTime();
+  const oldKey = moonPlacementKey(oldPlacement);
 
   for (let i = 0; i < 32; i += 1) {
     const mid = Math.floor((low + high) / 2);
     const midPlacement = getMoonPlacementAt(new Date(mid));
 
-    if (midPlacement.nakshatra === oldNakshatra) {
+    if (moonPlacementKey(midPlacement) === oldKey) {
       low = mid;
     } else {
       high = mid;
@@ -920,21 +929,31 @@ function formatMoonDayStatus(moonDayDebug, timeZone) {
   const segments = moonDayDebug.segments;
 
   if (segments.length === 1) {
-    return `No birth time selected: Moon stayed in ${segments[0].placement.nakshatra} for this birth date; Ascendant skipped`;
+    return `No birth time selected: Moon stayed in ${formatMoonPlacementLabel(segments[0].placement)} for this birth date; Ascendant skipped`;
   }
 
-  if (segments.length === 2) {
-    const first = segments[0];
-    const second = segments[1];
-    const flipTime = formatLocalTime(new Date(first.endIso), timeZone);
-    return `No birth time selected: Moon may be ${first.placement.nakshatra} before ${flipTime}, then ${second.placement.nakshatra} after ${flipTime}; both Moon placements highlighted; Ascendant skipped`;
-  }
+  const parts = segments.map((segment, index) => {
+    const label = formatMoonPlacementLabel(segment.placement);
 
-  const parts = segments.map((segment) => {
-    return `${segment.placement.nakshatra} ${segment.startLocal}–${segment.endLocal}`;
+    if (index === 0) {
+      const endTime = formatLocalTime(new Date(segment.endIso), timeZone);
+      return `${label} before ${endTime}`;
+    }
+
+    const startTime = formatLocalTime(new Date(segment.startIso), timeZone);
+
+    if (index === segments.length - 1) {
+      return `${label} after ${startTime} until midnight`;
+    }
+
+    return `${label} after ${startTime}`;
   });
 
-  return `No birth time selected: Moon changed across the day (${parts.join(", ")}); all possible Moon placements highlighted; Ascendant skipped`;
+  return `No birth time selected: Moon may be ${parts.join("; ")}; all possible Moon padas highlighted; Ascendant skipped`;
+}
+
+function formatMoonPlacementLabel(placement) {
+  return `${placement.nakshatra} (${placement.pada})`;
 }
 
 function addDaysToDateString(dateString, days) {
