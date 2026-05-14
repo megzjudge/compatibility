@@ -146,6 +146,102 @@ a {
   box-shadow: 0 0 0 3px rgba(142, 166, 255, 0.14);
 }
 
+
+/* No birth time checkbox + disabled birth-time / Ascendant styling */
+.field-group-no-time {
+  gap: 6px;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #dde4f9;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  user-select: none;
+}
+
+.field-group .checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.field-group-no-time .field-help {
+  max-width: 32rem;
+  line-height: 1.35;
+}
+
+.field-group-time.is-disabled {
+  opacity: 0.48;
+  filter: grayscale(1);
+}
+
+.field-group-time.is-disabled input {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+body.no-birth-time thead th:nth-child(6),
+body.no-birth-time thead th:nth-child(7),
+body.no-birth-time tbody td:nth-child(6),
+body.no-birth-time tbody td:nth-child(7) {
+  opacity: 0.38;
+  filter: grayscale(1);
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+body.no-birth-time tbody td:nth-child(6) .nak,
+body.no-birth-time tbody td:nth-child(7) {
+  pointer-events: none;
+}
+
+body.no-birth-time tbody td:nth-child(6) .pill {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+@media (min-width: 981px) {
+  .chart-form {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 0.72fr) minmax(140px, 0.36fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .field-group-time {
+    grid-column: 2;
+  }
+
+  .field-group-no-time {
+    grid-column: 3;
+    align-self: end;
+    padding-top: 24px;
+  }
+
+  .field-group-place {
+    grid-column: 4;
+  }
+
+  .field-group-no-time .field-help {
+    width: 260px;
+    max-width: 260px;
+  }
+}
+
 .button-row {
   grid-column: 1 / -1;
   display: flex;
