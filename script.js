@@ -87,6 +87,7 @@ const els = {
   form: document.getElementById("chart-form"),
   birthDate: document.getElementById("birth-date"),
   birthTime: document.getElementById("birth-time"),
+  noBirthTime: document.getElementById("no-birth-time"),
   birthPlace: document.getElementById("birth-place"),
   birthLat: document.getElementById("birth-lat"),
   birthLon: document.getElementById("birth-lon"),
@@ -100,9 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("script loaded", {
     formFound: !!els.form,
     birthPlaceFound: !!els.birthPlace,
-    timezoneFound: !!els.birthTimezone
+    timezoneFound: !!els.birthTimezone,
+    noBirthTimeFound: !!els.noBirthTime
   });
   bindEvents();
+  syncNoBirthTimeUI();
 });
 
 function bindEvents() {
@@ -118,6 +121,10 @@ function bindEvents() {
 
   if (els.clearBtn) {
     els.clearBtn.addEventListener("click", clearHighlightsAndInputs);
+  }
+
+  if (els.noBirthTime) {
+    els.noBirthTime.addEventListener("change", syncNoBirthTimeUI);
   }
 
   if (els.birthPlace) {
@@ -350,6 +357,8 @@ async function handleFormSubmit(event) {
 
   let birthDate = els.birthDate?.value?.trim() || "";
   let birthTime = els.birthTime?.value?.trim() || "";
+  const noBirthTime = !!els.noBirthTime?.checked;
+  const calculationTime = noBirthTime ? "12:00" : birthTime;
   let birthPlace = els.birthPlace?.value?.trim() || "";
   let latRaw = els.birthLat?.value ?? "";
   let lonRaw = els.birthLon?.value ?? "";
@@ -358,6 +367,8 @@ async function handleFormSubmit(event) {
   console.log("Raw form values at submit:", {
     birthDate,
     birthTime,
+    noBirthTime,
+    calculationTime,
     birthPlace,
     latRaw,
     lonRaw,
@@ -385,16 +396,18 @@ async function handleFormSubmit(event) {
   const missing = [];
 
   if (!birthDate) missing.push("birth date");
-  if (!birthTime) missing.push("birth time");
+  if (!birthTime && !noBirthTime) missing.push("birth time");
   if (!birthPlace) missing.push("birth place");
-  if (!latRaw || Number.isNaN(lat)) missing.push("latitude");
-  if (!lonRaw || Number.isNaN(lon)) missing.push("longitude");
+  if (!noBirthTime && (!latRaw || Number.isNaN(lat))) missing.push("latitude");
+  if (!noBirthTime && (!lonRaw || Number.isNaN(lon))) missing.push("longitude");
   if (!timeZone) missing.push("timezone");
 
   if (missing.length) {
     console.error("Form validation failed:", {
       birthDate,
       birthTime,
+      noBirthTime,
+      calculationTime,
       birthPlace,
       latRaw,
       lonRaw,
@@ -406,54 +419,83 @@ async function handleFormSubmit(event) {
     });
 
     alert(
-      `Missing or invalid: ${missing.join(", ")}.\n\n` +
-      `Date: ${birthDate || "missing"}\n` +
-      `Time: ${birthTime || "missing"}\n` +
-      `Place: ${birthPlace || "missing"}\n` +
-      `Latitude: ${latRaw || "missing"}\n` +
-      `Longitude: ${lonRaw || "missing"}\n` +
+      `Missing or invalid: ${missing.join(", ")}.
+
+` +
+      `Date: ${birthDate || "missing"}
+` +
+      `Time: ${noBirthTime ? "not required" : birthTime || "missing"}
+` +
+      `No birth time: ${noBirthTime ? "yes" : "no"}
+` +
+      `Place: ${birthPlace || "missing"}
+` +
+      `Latitude: ${latRaw || (noBirthTime ? "not required" : "missing")}
+` +
+      `Longitude: ${lonRaw || (noBirthTime ? "not required" : "missing")}
+` +
       `Timezone: ${timeZone || "missing"}`
     );
     return;
   }
 
-  state.birthInput = { birthDate, birthTime, birthPlace, lat, lon, timeZone };
+  state.birthInput = {
+    birthDate,
+    birthTime: noBirthTime ? null : birthTime,
+    noBirthTime,
+    birthPlace,
+    lat: Number.isNaN(lat) ? null : lat,
+    lon: Number.isNaN(lon) ? null : lon,
+    timeZone
+  };
 
   try {
     setFormBusy(true);
 
-    const dateDebug = buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone);
+    const dateDebug = buildUTCDateFromLocalInputsWithDebug(birthDate, calculationTime, timeZone);
     const date = dateDebug.date;
 
     console.log("Time conversion debug:", dateDebug);
 
     const sky = getSkySnapshot(date);
-    const lagna = getAscendant({ date, lat, lon });
+    const lagna = noBirthTime ? null : getAscendant({ date, lat, lon });
+    const moonDayDebug = noBirthTime ? buildMoonNakshatraDayDebug(birthDate, timeZone) : null;
 
     const moonDebug = buildBodyDebug("Moon", sky.planets.Moon);
     const sunDebug = buildBodyDebug("Sun", sky.planets.Sun);
-    const ascDebug = buildBodyDebug("Ascendant", lagna);
+    const ascDebug = lagna ? buildBodyDebug("Ascendant", lagna) : null;
+
+    const moonPlacements = moonDayDebug
+      ? moonDayDebug.uniquePlacements.map((placement) => ({
+          nakshatra: placement.nakshatra,
+          pada: null
+        }))
+      : [];
 
     const result = {
       moonNakshatra: normalizeNakshatraName(moonDebug.nakshatra),
-      moonPada: String(moonDebug.pada),
+      moonPada: noBirthTime ? "" : String(moonDebug.pada),
+      moonPlacements,
       sunNakshatra: normalizeNakshatraName(sunDebug.nakshatra),
       sunPada: String(sunDebug.pada),
-      ascNakshatra: normalizeNakshatraName(ascDebug.nakshatra),
-      ascPada: String(ascDebug.pada)
+      ascNakshatra: ascDebug ? normalizeNakshatraName(ascDebug.nakshatra) : "",
+      ascPada: ascDebug ? String(ascDebug.pada) : "",
+      skipAsc: noBirthTime
     };
 
     const calculationKey = [
       birthDate,
-      birthTime,
+      noBirthTime ? "NO_BIRTH_TIME" : birthTime,
+      calculationTime,
       birthPlace,
-      lat,
-      lon,
+      noBirthTime ? "NO_ASC" : lat,
+      noBirthTime ? "NO_ASC" : lon,
       timeZone,
       date.toISOString()
     ].join("|");
 
     if (
+      !noBirthTime &&
       state.lastCalculationKey === calculationKey &&
       state.lastMoonDebug &&
       (state.lastMoonDebug.nakshatra !== moonDebug.nakshatra ||
@@ -476,12 +518,15 @@ async function handleFormSubmit(event) {
       input: {
         birthDate,
         birthTime,
+        noBirthTime,
+        calculationTime,
         birthPlace,
         lat,
         lon,
         timeZone
       },
       timeDebug: dateDebug,
+      moonDayDebug,
       moonDebug,
       sunDebug,
       ascDebug,
@@ -490,14 +535,23 @@ async function handleFormSubmit(event) {
 
     highlightUserPlacements(result);
 
+    const moonStatus = noBirthTime
+      ? formatMoonDayStatus(moonDayDebug, timeZone)
+      : `Moon ${result.moonNakshatra} (${result.moonPada})`;
+    const ascStatus = noBirthTime
+      ? "Asc skipped (no birth time)"
+      : `Asc ${result.ascNakshatra} (${result.ascPada})`;
+
     setPlaceStatus(
-      `Moon ${result.moonNakshatra} (${result.moonPada}) · Sun ${result.sunNakshatra} (${result.sunPada}) · Asc ${result.ascNakshatra} (${result.ascPada})`
+      `${moonStatus} · Sun ${result.sunNakshatra} (${result.sunPada}) · ${ascStatus}`
     );
   } catch (error) {
     console.error("Astrology calculation failed:", {
       input: {
         birthDate,
         birthTime,
+        noBirthTime,
+        calculationTime,
         birthPlace,
         lat,
         lon,
@@ -509,6 +563,7 @@ async function handleFormSubmit(event) {
     alert(`Could not calculate chart: ${error.message}`);
   } finally {
     setFormBusy(false);
+    syncNoBirthTimeUI();
   }
 }
 
@@ -643,15 +698,28 @@ function getTimeZoneOffsetMinutes(timeZone, date) {
 function highlightUserPlacements({
   moonNakshatra,
   moonPada,
+  moonPlacements = [],
   sunNakshatra,
   sunPada,
   ascNakshatra,
-  ascPada
+  ascPada,
+  skipAsc = false
 }) {
   clearHighlights();
-  highlightSingle("moon", moonNakshatra, moonPada);
+
+  if (Array.isArray(moonPlacements) && moonPlacements.length > 0) {
+    moonPlacements.forEach((placement) => {
+      highlightSingle("moon", placement.nakshatra, placement.pada ?? null);
+    });
+  } else {
+    highlightSingle("moon", moonNakshatra, moonPada);
+  }
+
   highlightSingle("sun", sunNakshatra, sunPada);
-  highlightSingle("asc", ascNakshatra, ascPada);
+
+  if (!skipAsc) {
+    highlightSingle("asc", ascNakshatra, ascPada);
+  }
 }
 
 function highlightSingle(column, nakshatra, pada) {
@@ -664,10 +732,11 @@ function highlightSingle(column, nakshatra, pada) {
   matches.forEach((el) => {
     const sub = el.querySelector(".pill-sub");
     const subText = sub ? sub.textContent.replace(/[()]/g, "").trim() : "";
+    const wantsAnyPada = pada === null || typeof pada === "undefined" || String(pada).trim() === "";
 
     let padaMatches = false;
 
-    if (!subText) {
+    if (wantsAnyPada || !subText) {
       padaMatches = true;
     } else {
       const options = subText.split("/").map((v) => v.trim());
@@ -742,7 +811,151 @@ function clearHighlightsAndInputs() {
   state.placeResults = [];
   state.lastCalculationKey = null;
   state.lastMoonDebug = null;
+  syncNoBirthTimeUI();
   setPlaceStatus("");
+}
+
+function buildMoonNakshatraDayDebug(birthDate, timeZone) {
+  const dayStart = buildUTCDateFromLocalInputs(birthDate, "00:00", timeZone);
+  const nextBirthDate = addDaysToDateString(birthDate, 1);
+  const dayEnd = buildUTCDateFromLocalInputs(nextBirthDate, "00:00", timeZone);
+  const sampleStepMs = 10 * 60 * 1000;
+
+  const segments = [];
+  let previousDate = dayStart;
+  let previousPlacement = getMoonPlacementAt(dayStart);
+
+  segments.push({
+    start: dayStart,
+    end: null,
+    placement: previousPlacement
+  });
+
+  for (
+    let cursorMs = dayStart.getTime() + sampleStepMs;
+    cursorMs < dayEnd.getTime();
+    cursorMs += sampleStepMs
+  ) {
+    const cursor = new Date(Math.min(cursorMs, dayEnd.getTime()));
+    const currentPlacement = getMoonPlacementAt(cursor);
+
+    if (currentPlacement.nakshatra !== previousPlacement.nakshatra) {
+      const boundary = findMoonNakshatraBoundary(previousDate, cursor, previousPlacement.nakshatra);
+      const boundaryPlacement = getMoonPlacementAt(boundary);
+      segments[segments.length - 1].end = boundary;
+      segments.push({
+        start: boundary,
+        end: null,
+        placement: boundaryPlacement
+      });
+      previousPlacement = boundaryPlacement;
+      previousDate = boundary;
+    } else {
+      previousPlacement = currentPlacement;
+      previousDate = cursor;
+    }
+  }
+
+  segments[segments.length - 1].end = dayEnd;
+
+  const uniquePlacements = [];
+  const seen = new Set();
+
+  segments.forEach((segment) => {
+    const key = segment.placement.nakshatra;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniquePlacements.push(segment.placement);
+    }
+  });
+
+  return {
+    birthDate,
+    timeZone,
+    dayStartIso: dayStart.toISOString(),
+    dayEndIso: dayEnd.toISOString(),
+    segments: segments.map((segment) => ({
+      startIso: segment.start.toISOString(),
+      endIso: segment.end.toISOString(),
+      startLocal: formatLocalTime(segment.start, timeZone),
+      endLocal: formatLocalTime(segment.end, timeZone),
+      placement: segment.placement
+    })),
+    uniquePlacements
+  };
+}
+
+function getMoonPlacementAt(date) {
+  const moon = getSkySnapshot(date).planets.Moon;
+  return {
+    nakshatra: normalizeNakshatraName(moon.nakshatra.name),
+    pada: String(moon.nakshatraPada),
+    siderealLon: roundNumber(moon.siderealLon, 6)
+  };
+}
+
+function findMoonNakshatraBoundary(oldDate, newDate, oldNakshatra) {
+  let low = oldDate.getTime();
+  let high = newDate.getTime();
+
+  for (let i = 0; i < 32; i += 1) {
+    const mid = Math.floor((low + high) / 2);
+    const midPlacement = getMoonPlacementAt(new Date(mid));
+
+    if (midPlacement.nakshatra === oldNakshatra) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return new Date(high);
+}
+
+function formatMoonDayStatus(moonDayDebug, timeZone) {
+  if (!moonDayDebug || !Array.isArray(moonDayDebug.segments) || moonDayDebug.segments.length === 0) {
+    return "No birth time selected: Moon range unavailable";
+  }
+
+  const segments = moonDayDebug.segments;
+
+  if (segments.length === 1) {
+    return `No birth time selected: Moon stayed in ${segments[0].placement.nakshatra} for this birth date; Ascendant skipped`;
+  }
+
+  if (segments.length === 2) {
+    const first = segments[0];
+    const second = segments[1];
+    const flipTime = formatLocalTime(new Date(first.endIso), timeZone);
+    return `No birth time selected: Moon may be ${first.placement.nakshatra} before ${flipTime}, then ${second.placement.nakshatra} after ${flipTime}; both Moon placements highlighted; Ascendant skipped`;
+  }
+
+  const parts = segments.map((segment) => {
+    return `${segment.placement.nakshatra} ${segment.startLocal}–${segment.endLocal}`;
+  });
+
+  return `No birth time selected: Moon changed across the day (${parts.join(", ")}); all possible Moon placements highlighted; Ascendant skipped`;
+}
+
+function addDaysToDateString(dateString, days) {
+  const { year, month, day } = parseDateParts(dateString);
+  const date = new Date(Date.UTC(year, month - 1, day + days, 0, 0, 0));
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatLocalTime(date, timeZone) {
+  return new Intl.DateTimeFormat("en-AU", {
+    timeZone,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  })
+    .format(date)
+    .replace(/\s+/g, "")
+    .toLowerCase();
 }
 
 function buildBodyDebug(label, body) {
@@ -766,8 +979,8 @@ function roundNumber(value, decimals = 6) {
 function setFormBusy(isBusy) {
   const controls = [
     els.birthDate,
-    els.birthTime,
     els.birthPlace,
+    els.noBirthTime,
     els.clearBtn,
     els.form?.querySelector('button[type="submit"]')
   ].filter(Boolean);
@@ -776,9 +989,56 @@ function setFormBusy(isBusy) {
     control.disabled = isBusy;
   });
 
+  if (els.birthTime) {
+    els.birthTime.disabled = isBusy || !!els.noBirthTime?.checked;
+  }
+
   const submitBtn = els.form?.querySelector('button[type="submit"]');
   if (submitBtn) {
     submitBtn.textContent = isBusy ? "Calculating..." : "Highlight placements";
+  }
+}
+
+function syncNoBirthTimeUI() {
+  const noBirthTime = !!els.noBirthTime?.checked;
+
+  document.body.classList.toggle("no-birth-time", noBirthTime);
+
+  if (els.birthTime) {
+    els.birthTime.disabled = noBirthTime;
+    els.birthTime.required = !noBirthTime;
+    els.birthTime.setAttribute("aria-disabled", noBirthTime ? "true" : "false");
+  }
+
+  const timeGroup = els.birthTime?.closest(".field-group");
+  if (timeGroup) {
+    timeGroup.classList.toggle("is-disabled", noBirthTime);
+  }
+
+  if (noBirthTime) {
+    document.querySelectorAll('.nak[data-column="asc"].is-user-match').forEach((el) => {
+      el.classList.remove("is-user-match");
+      el.removeAttribute("aria-current");
+
+      const valueCell = el.closest("td");
+      if (valueCell) {
+        valueCell.classList.remove("cell-match");
+
+        const scoreCell = valueCell.nextElementSibling;
+        if (scoreCell && scoreCell.classList.contains("score")) {
+          scoreCell.classList.remove("score-match");
+        }
+
+        const row = valueCell.closest("tr");
+        const rankCell = row?.querySelector("td.rank");
+        if (rankCell) {
+          rankCell.classList.remove("rank-match-asc");
+          if (!rankCell.classList.contains("rank-match-sun") && !rankCell.classList.contains("rank-match-moon")) {
+            rankCell.classList.remove("rank-match");
+          }
+        }
+      }
+    });
   }
 }
 
