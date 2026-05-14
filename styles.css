@@ -146,10 +146,10 @@ a {
   box-shadow: 0 0 0 3px rgba(142, 166, 255, 0.14);
 }
 
-
 /* No birth time checkbox + disabled birth-time / Ascendant styling */
 .field-group-no-time {
-  gap: 6px;
+  gap: 0;
+  min-height: 0;
 }
 
 .checkbox-label {
@@ -157,7 +157,7 @@ a {
   align-items: center;
   gap: 8px;
   width: fit-content;
-  min-height: 46px;
+  min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -183,8 +183,30 @@ a {
 }
 
 .field-group-no-time .field-help {
-  max-width: 32rem;
-  line-height: 1.35;
+  display: none;
+}
+
+@media (min-width: 981px) {
+  .field-group-time {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .field-group-no-time {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    margin-top: -4px;
+  }
+
+  .field-group-place {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .button-row {
+    grid-row: 3;
+  }
 }
 
 .field-group-time.is-disabled {
@@ -214,32 +236,6 @@ body.no-birth-time tbody td:nth-child(7) {
 body.no-birth-time tbody td:nth-child(6) .pill {
   background: rgba(255, 255, 255, 0.035);
   box-shadow: none;
-}
-
-@media (min-width: 981px) {
-  .chart-form {
-    grid-template-columns: minmax(0, 1fr) minmax(170px, 0.72fr) minmax(140px, 0.36fr) minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .field-group-time {
-    grid-column: 2;
-  }
-
-  .field-group-no-time {
-    grid-column: 3;
-    align-self: end;
-    padding-top: 24px;
-  }
-
-  .field-group-place {
-    grid-column: 4;
-  }
-
-  .field-group-no-time .field-help {
-    width: 260px;
-    max-width: 260px;
-  }
 }
 
 .button-row {
