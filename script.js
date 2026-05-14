@@ -77,7 +77,10 @@ if (nakshatraMap["Shatabhisha"]) {
 const state = {
   birthInput: null,
   apiResult: null,
-  placeResults: []
+  placeResults: [],
+  placeLookupSeq: 0,
+  lastCalculationKey: null,
+  lastMoonDebug: null
 };
 
 const els = {
@@ -132,6 +135,7 @@ function bindEvents() {
 
 async function handlePlaceInput() {
   const query = els.birthPlace?.value?.trim() || "";
+  const lookupSeq = ++state.placeLookupSeq;
 
   if (query.length < 2) {
     clearLockedPlaceFields();
@@ -144,6 +148,17 @@ async function handlePlaceInput() {
     const response = await fetch(`/api/places?q=${encodeURIComponent(query)}`);
     if (!response.ok) {
       throw new Error(`Place lookup failed with ${response.status}`);
+    }
+
+    const currentQuery = els.birthPlace?.value?.trim() || "";
+    if (lookupSeq !== state.placeLookupSeq || currentQuery !== query) {
+      console.log("Ignoring stale place lookup result", {
+        requested: query,
+        current: currentQuery,
+        lookupSeq,
+        activeSeq: state.placeLookupSeq
+      });
+      return;
     }
 
     const results = await response.json();
@@ -172,6 +187,16 @@ async function handlePlaceInput() {
       setPlaceStatus("");
     }
   } catch (error) {
+    if (lookupSeq !== state.placeLookupSeq) {
+      console.log("Ignoring stale place lookup error", {
+        requested: query,
+        lookupSeq,
+        activeSeq: state.placeLookupSeq,
+        error
+      });
+      return;
+    }
+
     console.error("Place search failed:", error);
     clearLockedPlaceFields();
     renderPlaceSuggestions([]);
@@ -270,10 +295,23 @@ async function resolvePlaceFromText(placeText) {
   const localMatch = findMatchingPlace(typed);
   if (localMatch) return localMatch;
 
+  const lookupSeq = ++state.placeLookupSeq;
+
   try {
     const response = await fetch(`/api/places?q=${encodeURIComponent(placeText)}`);
     if (!response.ok) {
       throw new Error(`Place lookup failed with ${response.status}`);
+    }
+
+    const currentTyped = els.birthPlace?.value?.trim().toLowerCase() || "";
+    if (currentTyped && currentTyped !== typed) {
+      console.log("Ignoring stale fallback place result", {
+        requested: placeText,
+        current: els.birthPlace?.value || "",
+        lookupSeq,
+        activeSeq: state.placeLookupSeq
+      });
+      return null;
     }
 
     const results = await response.json();
@@ -392,18 +430,49 @@ async function handleFormSubmit(event) {
     const sky = getSkySnapshot(date);
     const lagna = getAscendant({ date, lat, lon });
 
+    const moonDebug = buildBodyDebug("Moon", sky.planets.Moon);
+    const sunDebug = buildBodyDebug("Sun", sky.planets.Sun);
+    const ascDebug = buildBodyDebug("Ascendant", lagna);
+
     const result = {
-      moonNakshatra: normalizeNakshatraName(sky.planets.Moon.nakshatra.name),
-      moonPada: String(sky.planets.Moon.nakshatraPada),
-      sunNakshatra: normalizeNakshatraName(sky.planets.Sun.nakshatra.name),
-      sunPada: String(sky.planets.Sun.nakshatraPada),
-      ascNakshatra: normalizeNakshatraName(lagna.nakshatra.name),
-      ascPada: String(lagna.nakshatraPada)
+      moonNakshatra: normalizeNakshatraName(moonDebug.nakshatra),
+      moonPada: String(moonDebug.pada),
+      sunNakshatra: normalizeNakshatraName(sunDebug.nakshatra),
+      sunPada: String(sunDebug.pada),
+      ascNakshatra: normalizeNakshatraName(ascDebug.nakshatra),
+      ascPada: String(ascDebug.pada)
     };
 
+    const calculationKey = [
+      birthDate,
+      birthTime,
+      birthPlace,
+      lat,
+      lon,
+      timeZone,
+      date.toISOString()
+    ].join("|");
+
+    if (
+      state.lastCalculationKey === calculationKey &&
+      state.lastMoonDebug &&
+      (state.lastMoonDebug.nakshatra !== moonDebug.nakshatra ||
+        String(state.lastMoonDebug.pada) !== String(moonDebug.pada) ||
+        state.lastMoonDebug.siderealLon !== moonDebug.siderealLon)
+    ) {
+      console.warn("Moon changed for the exact same calculation key", {
+        calculationKey,
+        previousMoon: state.lastMoonDebug,
+        currentMoon: moonDebug
+      });
+    }
+
+    state.lastCalculationKey = calculationKey;
+    state.lastMoonDebug = moonDebug;
     state.apiResult = result;
 
     console.log("Astrology calculation success:", {
+      calculationKey,
       input: {
         birthDate,
         birthTime,
@@ -413,6 +482,9 @@ async function handleFormSubmit(event) {
         timeZone
       },
       timeDebug: dateDebug,
+      moonDebug,
+      sunDebug,
+      ascDebug,
       result
     });
 
@@ -611,6 +683,16 @@ function highlightSingle(column, nakshatra, pada) {
     if (valueCell) {
       valueCell.classList.add("cell-match");
 
+      const row = valueCell.closest("tr");
+      if (row) {
+        row.classList.add("row-match");
+
+        const rankCell = row.querySelector("td.rank");
+        if (rankCell) {
+          rankCell.classList.add("rank-match");
+        }
+      }
+
       const scoreCell = valueCell.nextElementSibling;
       if (scoreCell && scoreCell.classList.contains("score")) {
         scoreCell.classList.add("score-match");
@@ -632,6 +714,14 @@ function clearHighlights() {
   document.querySelectorAll("td.score-match").forEach((td) => {
     td.classList.remove("score-match");
   });
+
+  document.querySelectorAll("td.rank-match").forEach((td) => {
+    td.classList.remove("rank-match");
+  });
+
+  document.querySelectorAll("tr.row-match").forEach((row) => {
+    row.classList.remove("row-match");
+  });
 }
 
 function clearHighlightsAndInputs() {
@@ -650,7 +740,27 @@ function clearHighlightsAndInputs() {
   state.birthInput = null;
   state.apiResult = null;
   state.placeResults = [];
+  state.lastCalculationKey = null;
+  state.lastMoonDebug = null;
   setPlaceStatus("");
+}
+
+function buildBodyDebug(label, body) {
+  return {
+    label,
+    siderealLon: roundNumber(body.siderealLon, 6),
+    rashi: body.rashi?.name || "",
+    rashiDeg: roundNumber(body.rashiDeg, 6),
+    nakshatra: body.nakshatra?.name || "",
+    pada: String(body.nakshatraPada || "")
+  };
+}
+
+function roundNumber(value, decimals = 6) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  const factor = 10 ** decimals;
+  return Math.round(number * factor) / factor;
 }
 
 function setFormBusy(isBusy) {
