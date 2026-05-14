@@ -365,10 +365,11 @@ td.score {
 
 /*
   Highlight the full matched block.
-  The row/rank number is only included when the matched placement is the first
-  placement column, where the rank sits directly beside the matched cell.
+  The row/rank number now lights up for any matching Sun, Moon, or Ascendant
+  placement in that row. The placement cell and its score remain joined as one
+  visual block.
 */
-tbody td.rank:has(+ td.cell-match),
+tbody td.rank-match,
 tbody td.cell-match,
 tbody td.score-match {
   background: rgba(142, 166, 255, 0.18) !important;
@@ -376,20 +377,21 @@ tbody td.score-match {
   font-weight: 800;
 }
 
-tbody td.rank:has(+ td.cell-match) {
-  border-radius: 14px 0 0 14px;
+tbody td.rank-match {
+  border-radius: 14px;
+  color: #dce4ff;
 }
 
-tbody td.rank:has(+ td.cell-match) + td.cell-match {
-  border-radius: 0;
-}
-
-tbody td.cell-match:not(td.rank + td.cell-match) {
+tbody td.cell-match {
   border-radius: 14px 0 0 14px;
 }
 
 tbody td.score-match {
   border-radius: 0 14px 14px 0;
+}
+
+tbody td.cell-match .pill {
+  background: rgba(142, 166, 255, 0.18);
 }
 
 @media (max-width: 980px) {
