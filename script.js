@@ -444,28 +444,72 @@ function buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone) {
   const { year, month, day } = parseDateParts(birthDate);
   const { hour, minute } = parseTimeParts(birthTime);
 
-  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
-  const offsetMinutes = getTimeZoneOffsetMinutes(timeZone, utcGuess);
+  validateTimeZone(timeZone);
 
-  const utcMillis =
-    Date.UTC(year, month - 1, day, hour, minute, 0) -
-    offsetMinutes * 60 * 1000;
+  const localAsUtcMillis = Date.UTC(year, month - 1, day, hour, minute, 0);
+  const candidates = [];
 
-  const date = new Date(utcMillis);
+  /*
+    A local birth time is not the same thing as a UTC time.
+    Rather than guessing the timezone offset from a possibly-wrong instant,
+    scan every possible UTC offset and keep the instant(s) that format back
+    to the exact local date and time in the selected IANA timezone.
 
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
-    throw new Error("Failed to build a valid UTC Date.");
+    This is safer for:
+    - daylight-saving changes
+    - half-hour and 45-minute timezones
+    - historical timezone offsets
+    - ambiguous repeated local times during DST rollback
+  */
+  for (let offsetMinutes = -14 * 60; offsetMinutes <= 14 * 60; offsetMinutes += 1) {
+    const candidate = new Date(localAsUtcMillis - offsetMinutes * 60 * 1000);
+    const parts = getZonedDateTimeParts(timeZone, candidate);
+
+    if (
+      parts.year === year &&
+      parts.month === month &&
+      parts.day === day &&
+      parts.hour === hour &&
+      parts.minute === minute
+    ) {
+      candidates.push({
+        date: candidate,
+        offsetMinutes,
+        offsetHours: offsetMinutes / 60,
+        finalUtcIso: candidate.toISOString()
+      });
+    }
   }
+
+  if (!candidates.length) {
+    throw new Error(
+      `The local time ${birthDate} ${birthTime} does not exist in ${timeZone}. ` +
+      `This can happen during daylight-saving time changes.`
+    );
+  }
+
+  /*
+    If the same wall-clock time occurs twice during a DST rollback,
+    choose the earlier real instant by default and expose both matches in debug.
+  */
+  candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const chosen = candidates[0];
 
   return {
     inputDate: birthDate,
     inputTime: birthTime,
     timeZone,
-    utcGuessIso: utcGuess.toISOString(),
-    offsetMinutes,
-    offsetHours: offsetMinutes / 60,
-    finalUtcIso: date.toISOString(),
-    date
+    possibleMatches: candidates.map((candidate) => ({
+      finalUtcIso: candidate.finalUtcIso,
+      offsetMinutes: candidate.offsetMinutes,
+      offsetHours: candidate.offsetHours
+    })),
+    ambiguousLocalTime: candidates.length > 1,
+    offsetMinutes: chosen.offsetMinutes,
+    offsetHours: chosen.offsetHours,
+    finalUtcIso: chosen.finalUtcIso,
+    date: chosen.date
   };
 }
 
@@ -473,8 +517,16 @@ function buildUTCDateFromLocalInputs(birthDate, birthTime, timeZone) {
   return buildUTCDateFromLocalInputsWithDebug(birthDate, birthTime, timeZone).date;
 }
 
-function getTimeZoneOffsetMinutes(timeZone, date) {
-  const dtf = new Intl.DateTimeFormat("en-US", {
+function validateTimeZone(timeZone) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone }).format(new Date());
+  } catch {
+    throw new Error(`Invalid timezone: ${timeZone}`);
+  }
+}
+
+function getZonedDateTimeParts(timeZone, date) {
+  const dtf = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
@@ -487,17 +539,30 @@ function getTimeZoneOffsetMinutes(timeZone, date) {
 
   const parts = Object.fromEntries(
     dtf.formatToParts(date)
-      .filter((p) => p.type !== "literal")
-      .map((p) => [p.type, p.value])
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
   );
 
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour: Number(parts.hour),
+    minute: Number(parts.minute),
+    second: Number(parts.second)
+  };
+}
+
+function getTimeZoneOffsetMinutes(timeZone, date) {
+  const parts = getZonedDateTimeParts(timeZone, date);
+
   const asUTC = Date.UTC(
-    Number(parts.year),
-    Number(parts.month) - 1,
-    Number(parts.day),
-    Number(parts.hour),
-    Number(parts.minute),
-    Number(parts.second)
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second
   );
 
   return (asUTC - date.getTime()) / 60000;
