@@ -338,7 +338,14 @@ export function getAscendant({ date, lat, lon } = {}) {
   //   tan(lambda) = -cos(RAMC) / (sin(e)*tan(phi) + cos(e)*sin(RAMC))
   const y = -Math.cos(alpha);
   const x = Math.sin(epsilon) * Math.tan(phi) + Math.cos(epsilon) * Math.sin(alpha);
-  const tropicalLon = norm360(deg(Math.atan2(y, x)));
+
+  /*
+   * The raw atan2 result gives one of the two ecliptic-horizon intersection
+   * points. With this coordinate convention it lands on the western point
+   * of the horizon axis, so rotate 180 degrees to return the eastern point:
+   * the Ascendant / Lagna.
+   */
+  const tropicalLon = norm360(deg(Math.atan2(y, x)) + 180);
 
   // Tropical -> sidereal
   const siderealLon = norm360(tropicalLon - ayanamsa);
