@@ -363,8 +363,12 @@ td.score {
   transform: translateY(-1px);
 }
 
-/* Highlight the full matched block: rank number + matched placement + score. */
-tbody tr:has(td.cell-match) > td.rank,
+/*
+  Highlight the full matched block.
+  The row/rank number is only included when the matched placement is the first
+  placement column, where the rank sits directly beside the matched cell.
+*/
+tbody td.rank:has(+ td.cell-match),
 tbody td.cell-match,
 tbody td.score-match {
   background: rgba(142, 166, 255, 0.18) !important;
@@ -372,12 +376,16 @@ tbody td.score-match {
   font-weight: 800;
 }
 
-tbody tr:has(td.cell-match) > td.rank {
+tbody td.rank:has(+ td.cell-match) {
   border-radius: 14px 0 0 14px;
 }
 
-tbody td.cell-match {
+tbody td.rank:has(+ td.cell-match) + td.cell-match {
   border-radius: 0;
+}
+
+tbody td.cell-match:not(td.rank + td.cell-match) {
+  border-radius: 14px 0 0 14px;
 }
 
 tbody td.score-match {
