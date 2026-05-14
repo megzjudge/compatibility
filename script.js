@@ -689,7 +689,7 @@ function highlightSingle(column, nakshatra, pada) {
 
         const rankCell = row.querySelector("td.rank");
         if (rankCell) {
-          rankCell.classList.add("rank-match");
+          rankCell.classList.add("rank-match", `rank-match-${column}`);
         }
       }
 
@@ -716,7 +716,7 @@ function clearHighlights() {
   });
 
   document.querySelectorAll("td.rank-match").forEach((td) => {
-    td.classList.remove("rank-match");
+    td.classList.remove("rank-match", "rank-match-sun", "rank-match-moon", "rank-match-asc");
   });
 
   document.querySelectorAll("tr.row-match").forEach((row) => {
