@@ -566,6 +566,23 @@ tbody td.cell-match .pill {
   }
 }
 
+@media (max-width: 720px) {
+  tbody td.rank-match {
+    color: var(--accent-2);
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0;
+  }
+
+  tbody td.rank-match-sun,
+  tbody td.rank-match-moon,
+  tbody td.rank-match-asc {
+    --rank-highlight-bg: transparent;
+    --rank-highlight-border: transparent;
+    --rank-highlight-shadow: transparent;
+  }
+}
+
 @media (max-width: 980px) {
   .chart-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
