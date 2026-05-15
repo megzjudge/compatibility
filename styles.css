@@ -74,6 +74,16 @@ a {
   line-height: 1.6;
 }
 
+.score-guide-card .score-guide-small {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: rgba(184, 191, 211, 0.88);
+}
+
+.score-guide-card .score-guide-small a {
+  font-size: inherit;
+}
+
 .controls-card,
 .table-card {
   background: var(--card);
