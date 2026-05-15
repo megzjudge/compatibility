@@ -542,9 +542,15 @@ async function handleFormSubmit(event) {
       ? "Asc skipped (no birth time)"
       : `Asc ${result.ascNakshatra} (${result.ascPada})`;
 
-    setPlaceStatus(
-      `${moonStatus} · Sun ${result.sunNakshatra} (${result.sunPada}) · ${ascStatus}`
-    );
+    if (noBirthTime) {
+      setPlaceStatus(
+        `Sun ${result.sunNakshatra} (${result.sunPada}) · ${ascStatus} ·\n${moonStatus}`
+      );
+    } else {
+      setPlaceStatus(
+        `${moonStatus} · Sun ${result.sunNakshatra} (${result.sunPada}) · ${ascStatus}`
+      );
+    }
   } catch (error) {
     console.error("Astrology calculation failed:", {
       input: {
@@ -923,13 +929,13 @@ function findMoonPlacementBoundary(oldDate, newDate, oldPlacement) {
 
 function formatMoonDayStatus(moonDayDebug, timeZone) {
   if (!moonDayDebug || !Array.isArray(moonDayDebug.segments) || moonDayDebug.segments.length === 0) {
-    return "No birth time selected: Moon range unavailable";
+    return "Moon range unavailable.";
   }
 
   const segments = moonDayDebug.segments;
 
   if (segments.length === 1) {
-    return `No birth time selected: Moon stayed in ${formatMoonPlacementLabel(segments[0].placement)} for this birth date; Ascendant skipped`;
+    return `Moon stayed in ${formatMoonPlacementLabel(segments[0].placement)} for this birth date.`;
   }
 
   const parts = segments.map((segment, index) => {
@@ -949,7 +955,24 @@ function formatMoonDayStatus(moonDayDebug, timeZone) {
     return `${label} after ${startTime}`;
   });
 
-  return `No birth time selected: Moon may be ${parts.join("; ")}; all possible Moon padas highlighted; Ascendant skipped`;
+  return formatMoonRangeLines(parts);
+}
+
+function formatMoonRangeLines(parts) {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    return "Moon range unavailable.";
+  }
+
+  const lines = [`Moon may be; ${parts[0]};`];
+
+  for (let index = 1; index < parts.length; index += 2) {
+    const chunk = parts.slice(index, index + 2);
+    const isLastChunk = index + chunk.length >= parts.length;
+    const ending = isLastChunk ? "." : ";";
+    lines.push(`${chunk.join("; ")}${ending}`);
+  }
+
+  return lines.join("\n");
 }
 
 function formatMoonPlacementLabel(placement) {
