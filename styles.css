@@ -505,19 +505,14 @@ tbody td.rank-match {
 }
 
 /*
-  The left ID number now gets its own placement colour.
-  If more than one placement lands on the same row, the ID becomes split-colour.
+  The left ID number now uses one shared Sun/Moon colour, so Sun no longer
+  appears brown and Moon uses the same highlight. Ascendant keeps its own tint.
 */
-tbody td.rank-match-sun:not(.rank-match-moon):not(.rank-match-asc) {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(234, 165, 101, 0.44), rgba(255, 215, 128, 0.28));
-  --rank-highlight-border: rgba(234, 165, 101, 0.55);
-  --rank-highlight-shadow: rgba(234, 165, 101, 0.32);
-}
-
-tbody td.rank-match-moon:not(.rank-match-sun):not(.rank-match-asc) {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(202, 202, 202, 0.42), rgba(142, 166, 255, 0.24));
-  --rank-highlight-border: rgba(202, 202, 202, 0.55);
-  --rank-highlight-shadow: rgba(202, 202, 202, 0.24);
+tbody td.rank-match-sun:not(.rank-match-asc),
+tbody td.rank-match-moon:not(.rank-match-asc) {
+  --rank-highlight-bg: linear-gradient(135deg, rgba(142, 166, 255, 0.42), rgba(200, 182, 255, 0.34));
+  --rank-highlight-border: rgba(142, 166, 255, 0.58);
+  --rank-highlight-shadow: rgba(142, 166, 255, 0.34);
 }
 
 tbody td.rank-match-asc:not(.rank-match-sun):not(.rank-match-moon) {
@@ -526,20 +521,11 @@ tbody td.rank-match-asc:not(.rank-match-sun):not(.rank-match-moon) {
   --rank-highlight-shadow: rgba(200, 182, 255, 0.32);
 }
 
-tbody td.rank-match-sun.rank-match-moon:not(.rank-match-asc) {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(234, 165, 101, 0.46) 0 50%, rgba(202, 202, 202, 0.38) 50% 100%);
-}
-
-tbody td.rank-match-sun.rank-match-asc:not(.rank-match-moon) {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(234, 165, 101, 0.46) 0 50%, rgba(200, 182, 255, 0.42) 50% 100%);
-}
-
-tbody td.rank-match-moon.rank-match-asc:not(.rank-match-sun) {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(202, 202, 202, 0.38) 0 50%, rgba(200, 182, 255, 0.42) 50% 100%);
-}
-
-tbody td.rank-match-sun.rank-match-moon.rank-match-asc {
-  --rank-highlight-bg: linear-gradient(135deg, rgba(234, 165, 101, 0.46) 0 33.33%, rgba(202, 202, 202, 0.38) 33.33% 66.66%, rgba(200, 182, 255, 0.42) 66.66% 100%);
+tbody td.rank-match-sun.rank-match-asc,
+tbody td.rank-match-moon.rank-match-asc {
+  --rank-highlight-bg: linear-gradient(135deg, rgba(142, 166, 255, 0.42) 0 50%, rgba(200, 182, 255, 0.42) 50% 100%);
+  --rank-highlight-border: rgba(200, 182, 255, 0.58);
+  --rank-highlight-shadow: rgba(142, 166, 255, 0.34);
 }
 
 tbody td.cell-match {
