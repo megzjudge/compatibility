@@ -156,6 +156,21 @@ a {
   box-shadow: 0 0 0 3px rgba(142, 166, 255, 0.14);
 }
 
+.place-dropdown {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 2px;
+}
+
+.place-dropdown[hidden] {
+  display: none !important;
+}
+
+.place-dropdown option {
+  background: #171b2e;
+  color: var(--text);
+}
+
 /* No birth time checkbox + disabled birth-time / Ascendant styling */
 .field-group-no-time {
   gap: 0;
