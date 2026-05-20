@@ -676,3 +676,26 @@ tbody td.cell-match .pill {
     --rank-highlight-shadow: transparent;
   }
 }
+
+/* Final rank colour failsafe
+   Keep every highlighted # / rank cell the same colour, regardless of whether
+   the row matched Sun, Moon, Ascendant, or a mix of them. This sits at the very
+   end of the stylesheet so older sun-only brown rank rules cannot win. */
+tbody tr td.rank.rank-match,
+tbody tr td.rank.rank-match.rank-match-sun,
+tbody tr td.rank.rank-match.rank-match-moon,
+tbody tr td.rank.rank-match.rank-match-asc,
+tbody tr td.rank.rank-match.rank-match-sun.rank-match-moon,
+tbody tr td.rank.rank-match.rank-match-sun.rank-match-asc,
+tbody tr td.rank.rank-match.rank-match-moon.rank-match-asc,
+tbody tr td.rank.rank-match.rank-match-sun.rank-match-moon.rank-match-asc {
+  --rank-highlight-bg: linear-gradient(135deg, rgba(142, 166, 255, 0.42), rgba(200, 182, 255, 0.34)) !important;
+  --rank-highlight-border: rgba(142, 166, 255, 0.58) !important;
+  --rank-highlight-shadow: rgba(142, 166, 255, 0.34) !important;
+  color: #ffffff !important;
+  background: var(--rank-highlight-bg) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--rank-highlight-border),
+    0 0 18px var(--rank-highlight-shadow) !important;
+  border-radius: 14px !important;
+}
