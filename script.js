@@ -78,6 +78,7 @@ const state = {
   birthInput: null,
   apiResult: null,
   placeResults: [],
+  selectedPlace: null,
   placeLookupSeq: 0,
   lastCalculationKey: null,
   lastMoonDebug: null,
@@ -95,6 +96,7 @@ const els = {
   birthLon: document.getElementById("birth-lon"),
   birthTimezone: document.getElementById("birth-timezone"),
   placeSuggestions: document.getElementById("place-suggestions"),
+  placeDropdown: null,
   placeStatus: document.getElementById("place-status"),
   clearBtn: document.getElementById("clear-highlights")
 };
@@ -106,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     timezoneFound: !!els.birthTimezone,
     noBirthTimeFound: !!els.noBirthTime
   });
+  ensurePlaceDropdown();
   bindEvents();
   syncNoBirthTimeUI();
 });
@@ -130,24 +133,53 @@ function bindEvents() {
   }
 
   if (els.birthPlace) {
+    els.birthPlace.removeAttribute("list");
+    els.birthPlace.setAttribute("autocomplete", "off");
     els.birthPlace.addEventListener("input", debounce(handlePlaceInput, 300));
-    els.birthPlace.addEventListener("change", handlePlaceSelection);
-    els.birthPlace.addEventListener("blur", handlePlaceSelection);
+  }
+
+  if (els.placeDropdown) {
+    els.placeDropdown.addEventListener("change", handlePlaceDropdownSelection);
   }
 
   window.addEventListener("beforeunload", () => {
     state.birthInput = null;
     state.apiResult = null;
     state.placeResults = [];
+    state.selectedPlace = null;
   });
+}
+
+function ensurePlaceDropdown() {
+  if (!els.birthPlace) return;
+
+  els.birthPlace.removeAttribute("list");
+  els.birthPlace.setAttribute("autocomplete", "off");
+
+  if (els.placeSuggestions) {
+    els.placeSuggestions.innerHTML = "";
+  }
+
+  if (els.placeDropdown) return;
+
+  const dropdown = document.createElement("select");
+  dropdown.id = "place-dropdown";
+  dropdown.className = "place-dropdown";
+  dropdown.hidden = true;
+  dropdown.setAttribute("aria-label", "Choose a birth place from the search results");
+
+  els.birthPlace.insertAdjacentElement("afterend", dropdown);
+  els.placeDropdown = dropdown;
 }
 
 async function handlePlaceInput() {
   const query = els.birthPlace?.value?.trim() || "";
   const lookupSeq = ++state.placeLookupSeq;
 
+  state.selectedPlace = null;
+  clearLockedPlaceFields();
+
   if (query.length < 2) {
-    clearLockedPlaceFields();
     renderPlaceSuggestions([]);
     setPlaceStatus("");
     return;
@@ -181,17 +213,8 @@ async function handlePlaceInput() {
 
     renderPlaceSuggestions(state.placeResults);
 
-    const existingMatch = findMatchingPlace(query);
-
-    if (existingMatch) {
-      lockPlace(existingMatch);
-      return;
-    }
-
-    clearLockedPlaceFields();
-
     if (state.placeResults.length > 0) {
-      setPlaceStatus("Choose a suggested place to lock coordinates.");
+      setPlaceStatus("Choose one of the dropdown place options to lock coordinates.");
     } else {
       setPlaceStatus("");
     }
@@ -214,38 +237,44 @@ async function handlePlaceInput() {
 }
 
 function renderPlaceSuggestions(results) {
-  if (!els.placeSuggestions) return;
+  ensurePlaceDropdown();
 
-  els.placeSuggestions.innerHTML = "";
+  if (els.placeSuggestions) {
+    els.placeSuggestions.innerHTML = "";
+  }
 
-  results.forEach((place) => {
+  if (!els.placeDropdown) return;
+
+  els.placeDropdown.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = results.length
+    ? "Select the correct place..."
+    : "No place options found";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  els.placeDropdown.appendChild(placeholder);
+
+  results.forEach((place, index) => {
     const option = document.createElement("option");
-    option.value = place.display_name;
-    els.placeSuggestions.appendChild(option);
+    option.value = String(index);
+    option.textContent = place.display_name;
+    els.placeDropdown.appendChild(option);
   });
+
+  els.placeDropdown.hidden = results.length === 0;
 }
 
-async function handlePlaceSelection() {
-  const typed = els.birthPlace?.value?.trim() || "";
-  console.log("handlePlaceSelection fired", { typed });
+function handlePlaceDropdownSelection(event) {
+  const selectedIndex = Number(event.currentTarget?.value);
+  const match = Number.isInteger(selectedIndex) ? state.placeResults[selectedIndex] : null;
 
-  if (!typed) {
-    clearLockedPlaceFields();
-    setPlaceStatus("");
-    return;
-  }
-
-  let match = findMatchingPlace(typed);
-
-  if (!match) {
-    console.log("no local match, trying fallback fetch");
-    match = await resolvePlaceFromText(typed);
-  }
+  console.log("handlePlaceDropdownSelection fired", { selectedIndex, match });
 
   if (!match) {
     clearLockedPlaceFields();
-    setPlaceStatus("Selected place did not lock coordinates.");
-    console.warn("place selection failed to lock", { typed, placeResults: state.placeResults });
+    setPlaceStatus("Choose one of the dropdown place options to lock coordinates.");
     return;
   }
 
@@ -273,6 +302,8 @@ function findMatchingPlace(typed) {
 }
 
 function lockPlace(match) {
+  state.selectedPlace = match;
+
   els.birthLat.value = String(match.lat);
   els.birthLon.value = String(match.lon);
   if (els.birthTimezone) els.birthTimezone.value = match.timezone || "";
@@ -285,6 +316,11 @@ function lockPlace(match) {
     timezone: match.timezone || ""
   });
 
+  if (els.placeDropdown) {
+    els.placeDropdown.hidden = true;
+    els.placeDropdown.value = "";
+  }
+
   if (!match.timezone) {
     setPlaceStatus("Place selected, but timezone is missing.");
   } else {
@@ -293,6 +329,7 @@ function lockPlace(match) {
 }
 
 function clearLockedPlaceFields() {
+  state.selectedPlace = null;
   els.birthLat.value = "";
   els.birthLon.value = "";
   if (els.birthTimezone) els.birthTimezone.value = "";
@@ -300,10 +337,6 @@ function clearLockedPlaceFields() {
 
 async function resolvePlaceFromText(placeText) {
   const typed = placeText.trim().toLowerCase();
-
-  const localMatch = findMatchingPlace(typed);
-  if (localMatch) return localMatch;
-
   const lookupSeq = ++state.placeLookupSeq;
 
   try {
@@ -314,7 +347,7 @@ async function resolvePlaceFromText(placeText) {
 
     const currentTyped = els.birthPlace?.value?.trim().toLowerCase() || "";
     if (currentTyped && currentTyped !== typed) {
-      console.log("Ignoring stale fallback place result", {
+      console.log("Ignoring stale place options result", {
         requested: placeText,
         current: els.birthPlace?.value || "",
         lookupSeq,
@@ -328,27 +361,19 @@ async function resolvePlaceFromText(placeText) {
     state.placeResults = places;
     renderPlaceSuggestions(places);
 
-    console.log("fallback places fetched", {
+    console.log("place options fetched", {
       query: placeText,
       count: places.length,
       first: places[0] || null
     });
 
-    const exactFetched = places.find(
-      (place) => place.display_name.trim().toLowerCase() === typed
-    );
+    if (places.length > 0) {
+      setPlaceStatus("Choose one of the dropdown place options to lock coordinates.");
+    }
 
-    const prefixFetched = places.find(
-      (place) => place.display_name.toLowerCase().startsWith(typed)
-    );
-
-    const containsFetched = places.find(
-      (place) => place.display_name.toLowerCase().includes(typed)
-    );
-
-    return exactFetched || prefixFetched || containsFetched || places[0] || null;
+    return null;
   } catch (error) {
-    console.error("Fallback place resolution failed:", error);
+    console.error("Place option refresh failed:", error);
     return null;
   }
 }
@@ -378,18 +403,13 @@ async function handleFormSubmit(event) {
   });
 
   if (birthPlace && (!latRaw || !lonRaw || !timeZone)) {
-    console.log("Attempting fallback place resolution...");
-    const resolved = await resolvePlaceFromText(birthPlace);
-
-    console.log("Fallback place resolution result:", resolved);
-
-    if (resolved) {
-      lockPlace(resolved);
-      latRaw = els.birthLat.value;
-      lonRaw = els.birthLon.value;
-      timeZone = els.birthTimezone?.value?.trim() || "";
-      birthPlace = els.birthPlace.value.trim();
-    }
+    console.log("Place typed but not selected from dropdown. Waiting for explicit selection.", {
+      birthPlace,
+      latRaw,
+      lonRaw,
+      timeZone
+    });
+    await resolvePlaceFromText(birthPlace);
   }
 
   const lat = Number(latRaw);
@@ -399,10 +419,13 @@ async function handleFormSubmit(event) {
 
   if (!birthDate) missing.push("birth date");
   if (!birthTime && !noBirthTime) missing.push("birth time");
-  if (!birthPlace) missing.push("birth place");
-  if (!noBirthTime && (!latRaw || Number.isNaN(lat))) missing.push("latitude");
-  if (!noBirthTime && (!lonRaw || Number.isNaN(lon))) missing.push("longitude");
-  if (!timeZone) missing.push("timezone");
+  if (!birthPlace) {
+    missing.push("birth place");
+  } else if (!latRaw || !lonRaw || !timeZone) {
+    missing.push("birth place selection");
+  }
+  if (!noBirthTime && latRaw && Number.isNaN(lat)) missing.push("latitude");
+  if (!noBirthTime && lonRaw && Number.isNaN(lon)) missing.push("longitude");
 
   if (missing.length) {
     console.error("Form validation failed:", {
@@ -929,15 +952,14 @@ function clearHighlightsAndInputs() {
     els.form.reset();
   }
 
-  if (els.placeSuggestions) {
-    els.placeSuggestions.innerHTML = "";
-  }
+  renderPlaceSuggestions([]);
 
   clearLockedPlaceFields();
 
   state.birthInput = null;
   state.apiResult = null;
   state.placeResults = [];
+  state.selectedPlace = null;
   state.lastCalculationKey = null;
   state.lastMoonDebug = null;
   state.activeHighlightResult = null;
