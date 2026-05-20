@@ -80,7 +80,9 @@ const state = {
   placeResults: [],
   placeLookupSeq: 0,
   lastCalculationKey: null,
-  lastMoonDebug: null
+  lastMoonDebug: null,
+  activeHighlightResult: null,
+  highlightVersion: 0
 };
 
 const els = {
@@ -701,7 +703,18 @@ function getTimeZoneOffsetMinutes(timeZone, date) {
   return (asUTC - date.getTime()) / 60000;
 }
 
-function highlightUserPlacements({
+function highlightUserPlacements(result) {
+  const safeResult = normalizeHighlightResult(result);
+
+  state.highlightVersion += 1;
+  state.activeHighlightResult = safeResult;
+
+  clearHighlights();
+  applyHighlightResult(safeResult);
+  scheduleHighlightFailsafe("highlightUserPlacements");
+}
+
+function normalizeHighlightResult({
   moonNakshatra,
   moonPada,
   moonPlacements = [],
@@ -711,29 +724,134 @@ function highlightUserPlacements({
   ascPada,
   skipAsc = false
 }) {
-  clearHighlights();
+  return {
+    moonNakshatra: normalizeNakshatraName(moonNakshatra),
+    moonPada: String(moonPada ?? ""),
+    moonPlacements: Array.isArray(moonPlacements)
+      ? moonPlacements
+          .map((placement) => ({
+            nakshatra: normalizeNakshatraName(placement?.nakshatra),
+            pada: placement?.pada ?? null
+          }))
+          .filter((placement) => placement.nakshatra)
+      : [],
+    sunNakshatra: normalizeNakshatraName(sunNakshatra),
+    sunPada: String(sunPada ?? ""),
+    ascNakshatra: normalizeNakshatraName(ascNakshatra),
+    ascPada: String(ascPada ?? ""),
+    skipAsc: !!skipAsc
+  };
+}
 
-  if (Array.isArray(moonPlacements) && moonPlacements.length > 0) {
-    moonPlacements.forEach((placement) => {
-      highlightSingle("moon", placement.nakshatra, placement.pada ?? null);
+function applyHighlightResult(result) {
+  const moonCount = applyMoonHighlights(result);
+  const sunCount = highlightWithPadaFallback("sun", result.sunNakshatra, result.sunPada);
+
+  if (!sunCount) {
+    console.warn("Sun highlight could not find a matching table cell.", {
+      sunNakshatra: result.sunNakshatra,
+      sunPada: result.sunPada
     });
-  } else {
-    highlightSingle("moon", moonNakshatra, moonPada);
   }
 
-  highlightSingle("sun", sunNakshatra, sunPada);
+  if (!moonCount) {
+    console.warn("Moon highlight could not find a matching table cell.", {
+      moonNakshatra: result.moonNakshatra,
+      moonPada: result.moonPada,
+      moonPlacements: result.moonPlacements
+    });
+  }
 
-  if (!skipAsc) {
-    highlightSingle("asc", ascNakshatra, ascPada);
+  if (!result.skipAsc) {
+    highlightWithPadaFallback("asc", result.ascNakshatra, result.ascPada);
+  }
+}
+
+function applyMoonHighlights(result) {
+  const placements = getMoonHighlightPlacements(result);
+
+  return placements.reduce((count, placement) => {
+    return count + highlightWithPadaFallback("moon", placement.nakshatra, placement.pada);
+  }, 0);
+}
+
+function getMoonHighlightPlacements(result) {
+  if (result.skipAsc && Array.isArray(result.moonPlacements) && result.moonPlacements.length > 0) {
+    return result.moonPlacements;
+  }
+
+  return [
+    {
+      nakshatra: result.moonNakshatra,
+      // When no birth time is supplied and the day-range calculation did not
+      // return placements, keep the Moon broad: highlight every matching pada
+      // for that nakshatra instead of accidentally using the noon fallback.
+      pada: result.skipAsc ? null : result.moonPada
+    }
+  ];
+}
+
+function highlightWithPadaFallback(column, nakshatra, pada) {
+  const exactCount = highlightSingle(column, nakshatra, pada);
+
+  if (exactCount > 0) {
+    return exactCount;
+  }
+
+  // Final fallback: if a table row groups padas differently from the calculated
+  // value, still highlight the nakshatra so Sun/Moon cannot disappear.
+  const wantsAnyPada = pada === null || typeof pada === "undefined" || String(pada).trim() === "";
+  if (!wantsAnyPada) {
+    return highlightSingle(column, nakshatra, null);
+  }
+
+  return exactCount;
+}
+
+function scheduleHighlightFailsafe(reason = "") {
+  const version = state.highlightVersion;
+  const run = () => enforceMandatoryHighlights(version, reason);
+
+  if (typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(run);
+  }
+
+  window.setTimeout(run, 0);
+}
+
+function enforceMandatoryHighlights(version = state.highlightVersion, reason = "") {
+  if (version !== state.highlightVersion || !state.activeHighlightResult) {
+    return;
+  }
+
+  const result = state.activeHighlightResult;
+
+  // Sun and Moon are mandatory. Re-apply them after any later UI sync/DOM class
+  // cleanup so they cannot be accidentally removed by another JS branch.
+  applyMoonHighlights(result);
+  const sunCount = highlightWithPadaFallback("sun", result.sunNakshatra, result.sunPada);
+
+  if (!sunCount) {
+    console.warn("Sun highlight failsafe found no matching table cell.", {
+      reason,
+      sunNakshatra: result.sunNakshatra,
+      sunPada: result.sunPada
+    });
+  }
+
+  if (!result.skipAsc) {
+    highlightWithPadaFallback("asc", result.ascNakshatra, result.ascPada);
   }
 }
 
 function highlightSingle(column, nakshatra, pada) {
-  if (!nakshatra) return;
+  if (!nakshatra) return 0;
 
   const matches = document.querySelectorAll(
     `.nak[data-column="${cssEscape(column)}"][data-nakshatra="${cssEscape(nakshatra)}"]`
   );
+
+  let appliedCount = 0;
 
   matches.forEach((el) => {
     const sub = el.querySelector(".pill-sub");
@@ -751,6 +869,7 @@ function highlightSingle(column, nakshatra, pada) {
 
     if (!padaMatches) return;
 
+    appliedCount += 1;
     el.classList.add("is-user-match");
     el.setAttribute("aria-current", "true");
 
@@ -774,6 +893,8 @@ function highlightSingle(column, nakshatra, pada) {
       }
     }
   });
+
+  return appliedCount;
 }
 
 function clearHighlights() {
@@ -800,6 +921,8 @@ function clearHighlights() {
 }
 
 function clearHighlightsAndInputs() {
+  state.highlightVersion += 1;
+  state.activeHighlightResult = null;
   clearHighlights();
 
   if (els.form) {
@@ -817,6 +940,7 @@ function clearHighlightsAndInputs() {
   state.placeResults = [];
   state.lastCalculationKey = null;
   state.lastMoonDebug = null;
+  state.activeHighlightResult = null;
   syncNoBirthTimeUI();
   setPlaceStatus("");
 }
@@ -1082,6 +1206,8 @@ function syncNoBirthTimeUI() {
       }
     });
   }
+
+  enforceMandatoryHighlights(state.highlightVersion, "syncNoBirthTimeUI");
 }
 
 function setPlaceStatus(text) {
