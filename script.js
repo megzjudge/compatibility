@@ -54,9 +54,6 @@ const planetIconMap = {
   Ketu: "ketu.png"
 };
 
-const planetSymbolToNameMap = Object.fromEntries(
-  Object.entries(planetSymbolMap).map(([planet, symbol]) => [symbol, planet])
-);
 
 const planetColorMap = Object.fromEntries(
   baseColors.map(({ planet, hex }) => [planet, hex])
@@ -133,9 +130,7 @@ function replacePlanetSymbolPillsWithIcons() {
     if (pill.querySelector(".planet-icon")) return;
 
     const nak = pill.closest(".nak");
-    const planetFromClass = getPlanetNameFromClassList(nak?.classList);
-    const planetFromSymbol = planetSymbolToNameMap[pill.textContent.trim()];
-    const planet = planetFromClass || planetFromSymbol;
+    const planet = getPlanetNameFromClassList(nak?.classList);
     const iconSrc = planetIconMap[planet];
 
     if (!planet || !iconSrc) return;
@@ -146,8 +141,14 @@ function replacePlanetSymbolPillsWithIcons() {
     icon.className = "planet-icon";
     icon.src = iconSrc;
     icon.alt = planet;
+    icon.title = planet;
     icon.loading = "lazy";
     icon.decoding = "async";
+
+    icon.addEventListener("error", () => {
+      console.warn(`Planet icon failed to load: ${iconSrc}`);
+      pill.textContent = planet;
+    }, { once: true });
 
     pill.appendChild(icon);
   });
