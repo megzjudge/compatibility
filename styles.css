@@ -398,6 +398,17 @@ td.score {
   color: var(--planet-color);
 }
 
+/* Make non-emoji planet symbols larger while keeping Sun/Moon emoji normal size */
+.pill-planet {
+  font-size: 1.9em;
+  line-height: 1;
+}
+
+.nak-sun .pill-planet,
+.nak-moon .pill-planet {
+  font-size: 1em;
+}
+
 .pill-name {
   color: var(--planet-color);
   font-weight: 700;
