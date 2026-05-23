@@ -42,18 +42,6 @@ const nakshatras = [
   { label: "🐘 Revati",             ruler: "Mercury" }
 ];
 
-const planetSymbolMap = {
-  Sun: "☀️",
-  Moon: "🌙",
-  Mercury: "☿",
-  Venus: "♀",
-  Mars: "♂",
-  Jupiter: "♃",
-  Saturn: "♄",
-  Rahu: "☊",
-  Ketu: "☋"
-};
-
 const planetIconMap = {
   Sun: "sun.png",
   Moon: "moon.png",
