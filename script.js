@@ -19,9 +19,9 @@ const nakshatras = [
   { label: "🐍 Rohini",             ruler: "Moon"    },
   { label: "🐍 Mrigashirsha",       ruler: "Mars"    },
   { label: "🐕 Ardra",              ruler: "Rahu"    },
-  { label: "🐈‍⬛ Punarvasu",        ruler: "Jupiter" },
+  { label: "🐈‍⬛ Punarvasu",          ruler: "Jupiter" },
   { label: "🐐 Pushya",             ruler: "Saturn"  },
-  { label: "🐈‍⬛ Ashlesha",         ruler: "Mercury" },
+  { label: "🐈‍⬛ Ashlesha",           ruler: "Mercury" },
   { label: "🐀 Magha",              ruler: "Ketu"    },
   { label: "🐀 Purva Phalguni",     ruler: "Venus"   },
   { label: "🐄 Uttara Phalguni",    ruler: "Sun"     },
@@ -53,6 +53,22 @@ const planetSymbolMap = {
   Rahu: "☊",
   Ketu: "☋"
 };
+
+const planetIconMap = {
+  Sun: "sun.png",
+  Moon: "moon.png",
+  Mercury: "mercury.png",
+  Venus: "venus.png",
+  Mars: "mars.png",
+  Jupiter: "jupiter.png",
+  Saturn: "saturn.png",
+  Rahu: "rahu.png",
+  Ketu: "ketu.png"
+};
+
+const planetSymbolToNameMap = Object.fromEntries(
+  Object.entries(planetSymbolMap).map(([planet, symbol]) => [symbol, planet])
+);
 
 const planetColorMap = Object.fromEntries(
   baseColors.map(({ planet, hex }) => [planet, hex])
@@ -109,9 +125,45 @@ document.addEventListener("DOMContentLoaded", () => {
     noBirthTimeFound: !!els.noBirthTime
   });
   ensurePlaceDropdown();
+  replacePlanetSymbolPillsWithIcons();
   bindEvents();
   syncNoBirthTimeUI();
 });
+
+function getPlanetNameFromClassList(classList) {
+  if (!classList) return "";
+
+  const classMatch = Array.from(classList).find((className) => className.startsWith("nak-"));
+  if (!classMatch) return "";
+
+  const slug = classMatch.replace("nak-", "");
+  return Object.keys(planetIconMap).find((planet) => planet.toLowerCase() === slug) || "";
+}
+
+function replacePlanetSymbolPillsWithIcons() {
+  document.querySelectorAll(".pill-planet").forEach((pill) => {
+    if (pill.querySelector(".planet-icon")) return;
+
+    const nak = pill.closest(".nak");
+    const planetFromClass = getPlanetNameFromClassList(nak?.classList);
+    const planetFromSymbol = planetSymbolToNameMap[pill.textContent.trim()];
+    const planet = planetFromClass || planetFromSymbol;
+    const iconSrc = planetIconMap[planet];
+
+    if (!planet || !iconSrc) return;
+
+    pill.textContent = "";
+
+    const icon = document.createElement("img");
+    icon.className = "planet-icon";
+    icon.src = iconSrc;
+    icon.alt = planet;
+    icon.loading = "lazy";
+    icon.decoding = "async";
+
+    pill.appendChild(icon);
+  });
+}
 
 function bindEvents() {
   console.log("bindEvents ran", {
