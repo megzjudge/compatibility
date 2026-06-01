@@ -183,32 +183,19 @@ function bindEvents() {
     els.placeDropdown.addEventListener("change", handlePlaceDropdownSelection);
   }
 
-  // Example buttons — directly highlight hardcoded placements in the table
-  const examplePlacements = [
-    {
-      moonNakshatra: "Uttara Bhadrapadha", moonPada: "2",
-      sunNakshatra: "Swati",               sunPada: "3",
-      ascNakshatra: "Vishakha",            ascPada: "3",
-      skipAsc: false
-    },
-    {
-      moonNakshatra: "Mrigashirsha", moonPada: "1",
-      sunNakshatra: "Mula",          sunPada: "3",
-      ascNakshatra: "Ashwini",       ascPada: "4",
-      skipAsc: false
-    }
-  ];
-
-  document.querySelectorAll(".btn-example").forEach((btn, index) => {
-    btn.addEventListener("click", () => {
-      const placement = examplePlacements[index];
-      if (!placement) return;
-      highlightUserPlacements(placement);
-
-      const tableCard = document.querySelector(".table-card");
-      tableCard?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Example button - directly highlight hardcoded placements in the table
+  const exampleBtn = document.querySelector(".btn-example");
+  if (exampleBtn) {
+    exampleBtn.addEventListener("click", () => {
+      highlightUserPlacements({
+        moonNakshatra: "Uttara Bhadrapadha", moonPada: "2",
+        sunNakshatra: "Swati",               sunPada: "3",
+        ascNakshatra: "Vishakha",            ascPada: "3",
+        skipAsc: false
+      });
+      document.querySelector(".table-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  });
+  }
 
   window.addEventListener("beforeunload", () => {
     state.birthInput = null;
