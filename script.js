@@ -8,7 +8,7 @@ const baseColors = [
   { planet: "Mars", hex: "#FF4040" },
   { planet: "Jupiter", hex: "#F4E87C" },
   { planet: "Saturn", hex: "#00167E" },
-  { planet: "Rahu", hex: "#0D0D0E" },
+  { planet: "Rahu", hex: "#111213" },
   { planet: "Ketu", hex: "#B2A38B" }
 ];
 
