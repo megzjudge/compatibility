@@ -481,7 +481,7 @@ td.score {
 }
 
 .nak-rahu {
-  --planet-color: #111213;
+  --planet-color: #555555;
 }
 
 .nak-ketu {
@@ -761,4 +761,21 @@ tbody tr td.rank.rank-match.rank-match-sun.rank-match-moon.rank-match-asc {
     inset 0 0 0 1px var(--rank-highlight-border),
     0 0 18px var(--rank-highlight-shadow) !important;
   border-radius: 14px !important;
+}
+
+.site-footer {
+  margin-top: 32px;
+  padding: 20px 0 8px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: rgba(184, 191, 211, 0.5);
+}
+
+.site-footer a {
+  color: rgba(142, 166, 255, 0.6);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
 }
