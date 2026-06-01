@@ -183,32 +183,30 @@ function bindEvents() {
     els.placeDropdown.addEventListener("change", handlePlaceDropdownSelection);
   }
 
-  // Example buttons — pre-fill the form and trigger place search
-  document.querySelectorAll(".btn-example").forEach((btn) => {
+  // Example buttons — directly highlight hardcoded placements in the table
+  const examplePlacements = [
+    {
+      moonNakshatra: "Uttara Bhadrapadha", moonPada: "2",
+      sunNakshatra: "Swati",               sunPada: "3",
+      ascNakshatra: "Vishakha",            ascPada: "3",
+      skipAsc: false
+    },
+    {
+      moonNakshatra: "Mrigashirsha", moonPada: "1",
+      sunNakshatra: "Mula",          sunPada: "3",
+      ascNakshatra: "Ashwini",       ascPada: "4",
+      skipAsc: false
+    }
+  ];
+
+  document.querySelectorAll(".btn-example").forEach((btn, index) => {
     btn.addEventListener("click", () => {
-      const { date, time, place } = btn.dataset;
+      const placement = examplePlacements[index];
+      if (!placement) return;
+      highlightUserPlacements(placement);
 
-      if (els.birthDate) els.birthDate.value = date;
-
-      if (els.birthTime) {
-        els.birthTime.value = time;
-      }
-
-      if (els.noBirthTime) {
-        els.noBirthTime.checked = false;
-      }
-
-      syncNoBirthTimeUI();
-
-      if (els.birthPlace) {
-        els.birthPlace.value = place;
-        clearLockedPlaceFields();
-        // Fire the place search so the dropdown appears for the user to confirm
-        handlePlaceInput();
-      }
-
-      // Scroll the form card into view smoothly
-      els.form?.closest(".controls-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const tableCard = document.querySelector(".table-card");
+      tableCard?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
 
