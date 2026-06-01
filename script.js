@@ -183,6 +183,35 @@ function bindEvents() {
     els.placeDropdown.addEventListener("change", handlePlaceDropdownSelection);
   }
 
+  // Example buttons — pre-fill the form and trigger place search
+  document.querySelectorAll(".btn-example").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const { date, time, place } = btn.dataset;
+
+      if (els.birthDate) els.birthDate.value = date;
+
+      if (els.birthTime) {
+        els.birthTime.value = time;
+      }
+
+      if (els.noBirthTime) {
+        els.noBirthTime.checked = false;
+      }
+
+      syncNoBirthTimeUI();
+
+      if (els.birthPlace) {
+        els.birthPlace.value = place;
+        clearLockedPlaceFields();
+        // Fire the place search so the dropdown appears for the user to confirm
+        handlePlaceInput();
+      }
+
+      // Scroll the form card into view smoothly
+      els.form?.closest(".controls-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
   window.addEventListener("beforeunload", () => {
     state.birthInput = null;
     state.apiResult = null;
