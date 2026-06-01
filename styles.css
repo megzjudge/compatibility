@@ -304,6 +304,42 @@ body.no-birth-time tbody td:nth-child(6) .pill {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Example buttons */
+.example-buttons {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.example-label {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 100%;
+}
+
+.btn-example {
+  color: var(--accent);
+  background: rgba(142, 166, 255, 0.08);
+  border: 1px solid rgba(142, 166, 255, 0.28);
+  font-size: 0.88rem;
+  padding: 8px 14px;
+  min-height: 38px;
+  border-radius: 999px;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.btn-example:hover {
+  background: rgba(142, 166, 255, 0.18);
+  border-color: rgba(142, 166, 255, 0.5);
+  transform: translateY(-1px);
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -696,6 +732,11 @@ tbody td.cell-match .pill {
     --rank-highlight-bg: transparent;
     --rank-highlight-border: transparent;
     --rank-highlight-shadow: transparent;
+  }
+
+  .btn-example {
+    font-size: 0.82rem;
+    padding: 7px 12px;
   }
 }
 
