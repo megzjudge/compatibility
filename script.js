@@ -185,31 +185,6 @@ function bindEvents() {
     els.placeDropdown.addEventListener("change", handlePlaceDropdownSelection);
   }
 
-  // Example button - fill the form and highlight placements in the table
-  const exampleBtn = document.querySelector(".btn-example");
-  if (exampleBtn) {
-    exampleBtn.addEventListener("click", () => {
-      // Pre-fill form fields
-      if (els.birthDate) els.birthDate.value = "1990-10-31";
-      if (els.birthTime) els.birthTime.value = "07:45";
-      if (els.noBirthTime) els.noBirthTime.checked = false;
-      syncNoBirthTimeUI();
-      if (els.birthPlace) {
-        els.birthPlace.value = "Augusta, Sicily, Italy";
-        clearLockedPlaceFields();
-        handlePlaceInput();
-      }
-      // Highlight the computed placements directly
-      highlightUserPlacements({
-        moonNakshatra: "Uttara Bhadrapadha", moonPada: "2",
-        sunNakshatra: "Swati",               sunPada: "3",
-        ascNakshatra: "Vishakha",            ascPada: "3",
-        skipAsc: false
-      });
-      document.querySelector(".table-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
-
   window.addEventListener("beforeunload", () => {
     state.birthInput = null;
     state.apiResult = null;
