@@ -33,7 +33,7 @@ The ephemeris is accurate to roughly an arcminute for the Sun and Moon, and to w
 ## Tech stack
 
 - Vanilla **HTML / CSS / JavaScript** (ES modules — no build step, no framework)
-- **Cloudflare Pages** for hosting, with a **Pages Function** for the geocoding proxy
+- **Cloudflare Pages** for hosting, with a **Pages Function** (.../functions/api/ folder layout) for the geocoding proxy
 - **Open-Meteo** geocoding API for place lookup
 
 ## Privacy
