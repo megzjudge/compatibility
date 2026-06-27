@@ -43,15 +43,15 @@ const nakshatras = [
 ];
 
 const planetIconMap = {
-  Sun: "sun.png",
-  Moon: "moon.png",
-  Mercury: "mercury.png",
-  Venus: "venus.png",
-  Mars: "mars.png",
-  Jupiter: "jupiter.png",
-  Saturn: "saturn.png",
-  Rahu: "rahu.png",
-  Ketu: "ketu.png"
+  Sun: "/images/sun.png",
+  Moon: "/images/moon.png",
+  Mercury: "/images/mercury.png",
+  Venus: "/images/venus.png",
+  Mars: "/images/mars.png",
+  Jupiter: "/images/jupiter.png",
+  Saturn: "/images/saturn.png",
+  Rahu: "/images/rahu.png",
+  Ketu: "/images/ketu.png"
 };
 
 
