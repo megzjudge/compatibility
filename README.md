@@ -1,6 +1,6 @@
 # Compatibility
 
-A single-page **Vedic (sidereal) Nakshatra compatibility table**. Enter your birth details and the app highlights your Moon, Sun, and Ascendant placements across a ranked compatibility chart — each nakshatra shown with its planetary ruler, its *yoni* animal icon, and colour-coding by ruling planet.
+A single-page **Vedic (sidereal) Nakshatra compatibility table**. Enter your birth details and the app highlights your Moon, Sun, and Ascendant placements across a ranked compatibility chart — each nakshatra shown with its planetary ruler, its *yoni* animal icon, and colour-coding by ruling planet acccording to Vedic texts.
 
 All chart maths runs in the browser. Nothing about your birth details is stored — everything clears on refresh.
 
