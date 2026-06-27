@@ -17,8 +17,6 @@ The `/36` total is the sum of the eight kootas (gunas): **Varna, Vashya, Tara, Y
 
 The full 36-guna framework appears in later Jyotish texts; in-app links point to reference material if you want to read further or run a full chart yourself.
 
-> This is a traditional/cultural scoring system presented for interest and study — not life advice.
-
 ## How it works
 
 | Piece | Role |
