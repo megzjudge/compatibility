@@ -26,7 +26,7 @@ The full 36-guna framework appears in later Jyotish texts; in-app links point to
 | `script.js` | Form handling, place autocomplete, and the highlight logic |
 | `vedic-ephemeris.mjs` | Zero-dependency sidereal ephemeris — computes tropical longitudes via Jean Meeus algorithms, subtracts the Lahiri ayanamsa, and derives nakshatras, rashis, and the Ascendant |
 | `functions/api/places.js` | Cloudflare Pages Function that proxies Open-Meteo geocoding for place search |
-| `*.png` | Planet glyphs (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn) plus nodal calculations Rahu and Ketu |
+| `*.png` | Planet glyphs (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn) plus nodes Rahu and Ketu |
 
 The ephemeris is accurate to roughly an arcminute for the Sun and Moon, and to within about half a degree for the outer planets.
 
