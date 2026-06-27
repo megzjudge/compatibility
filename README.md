@@ -38,30 +38,6 @@ The ephemeris is accurate to roughly an arcminute for the Sun and Moon, and to w
 - **Cloudflare Pages** for hosting, with a **Pages Function** for the geocoding proxy
 - **Open-Meteo** geocoding API for place lookup
 
-## Running it locally
-
-Because the place search relies on a Cloudflare Pages Function, the easiest way to run the whole thing locally is with Wrangler:
-
-```bash
-npm install -g wrangler
-wrangler pages dev .
-```
-
-Then open the URL Wrangler prints.
-
-If you only want to preview the table and don't need place autocomplete, any static server works:
-
-```bash
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
-
-(Place lookup will simply return nothing without the function running.)
-
-## Deploying
-
-This is set up for **Cloudflare Pages**. Connect the repository in the Cloudflare dashboard (or run `wrangler pages deploy .`). No build command is required — set the output directory to the repository root. The `functions/` directory is picked up automatically as Pages Functions.
-
 ## Privacy
 
 Birth details are used only to compute placements in your browser for the current session. They aren't persisted, logged, or sent anywhere except the place name you type, which goes to the geocoding proxy purely to resolve coordinates.
